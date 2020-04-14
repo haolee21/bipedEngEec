@@ -22,9 +22,9 @@ if(ypos>=th || size(x,1)<2 )
     grad_t = grad_beta_t;
     grad_t_k =gpuArray(zeros(size(x,2),numJ));
 else
-    M_t = five_M(q1(2),q1(3),q1(4),q1(5));
+    
     [out_beta_t_k,grad_beta_t_k] = betaFun(x(2,:));
-    out_t = out_beta_t - out_beta_t_k/M_t;
+    out_t = out_beta_t - out_beta_t_k/M;
     
     
     % we need to solve the term dM/dx (M\beta/M), yet dM/dx is an tensor,

@@ -8,7 +8,7 @@ addpath gaitCon/
 %% simulation parameter
 
 param.numJ=5;
-param.toe_th = 1e-2;
+param.toe_th =- 1e2;
 
 param.gaitT = 1;
 param.sampT = 0.002;
