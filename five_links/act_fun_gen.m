@@ -4,7 +4,7 @@ syms q1 q2 q3 q4 q5 th
 
 ypos = end_y_pos([q1,q2,q3,q4,q5]);
 
-sigma = 0.5*tanh(ypos-th);
+sigma = 0.8*(0.5*tanh(400*(th-ypos))+0.5);
 
 matlabFunction(sigma,'file','sigma_out');
 
