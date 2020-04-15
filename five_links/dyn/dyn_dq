@@ -1,0 +1,10 @@
+function [dx,dxGrad] = dyn_dq(x,tauext,jointNum)
+% this function will calculate the dq terms 
+
+q = x(1:jointNum,:);
+dq = x(jointNum+1:2*jointNum,:);
+u = x
+
+
+
+end

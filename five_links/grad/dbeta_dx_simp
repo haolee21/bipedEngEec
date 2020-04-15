@@ -1,0 +1,10 @@
+%% Generate function for d(beta)/dx
+
+
+syms q1 q2 q3 q4 q5 dq1 dq2 dq3 dq4 dq5
+
+M = five_M_simp(q2,q3,q4,q5);
+V = five_V(q2,q3,q4,q5,dq1,dq2,dq3,dq4,dq5);
+G = five_G(q1,q2,q3,q4,q5);
+
+
