@@ -3,7 +3,7 @@ function [ceq,ceq_grad] = dynConst(x,param)
 
 numJ = param.numJ; %here we have to define number of joints since this is related to the dynamic equations
 
-ceq_grad = gpuArray(zeros(size(x,1),size(x,2),2*size(x,1)/3*(size(x,1)-1)));
+
 
 %% equality constraints 
 % e.g., q(1) - q(0) = dt*0.5*(f1+f2)
@@ -57,16 +57,17 @@ ceq_grad = gpuArray(zeros(size(x,1),size(x,2),(size(x,2)-1)*2*numJ)); %total gra
 
 %calculate the first gradient since it is a special case
 p_temp = gpuArray(zeros(size(x,1),2*numJ*(size(x,2)-1)));
+
 %p1 terms
-p_temp(1:numJ,1:numJ) = -eye(numJ);
-p_temp(numJ+1:2*numJ,(size(x,2)-1)*numJ+1:size(x,2)*numJ) = -eye(numJ);
+p_temp(1:numJ,1:numJ) =p_temp(1:numJ,1:numJ)-eye(numJ);
+p_temp(numJ+1:2*numJ,(size(x,2)-1)*numJ+1:size(x,2)*numJ) = p_temp(numJ+1:2*numJ,(size(x,2)-1)*numJ+1:size(x,2)*numJ)-eye(numJ);
 %p2 terms
-p_temp(numJ+1:2*numJ,1:numJ) = -0.5*param.sampT*eye(numJ);
-p_temp(:,(size(x,2)-1)*numJ+1:(size(x,2)+1)*numJ) = -0.5*param.sampT*[reshape(df_dxt(1,:,:),[3,1]*numJ)+reshape(df_dxt_k(1,:,:),[3,1]*numJ),reshape(df_dxt_k(1,:,:),[3,1]*numJ)];
-ceq_grad(:,1,:) = reshape(p_temp,[size(p_temp,1),1,size(p_temp,2)]);
+p_temp(numJ+1:2*numJ,1:numJ) = p_temp(numJ+1:2*numJ,1:numJ)-0.5*param.sampT*eye(numJ);
+p_temp(:,(size(x,2)-1)*numJ+1:(size(x,2)+1)*numJ) = p_temp(:,(size(x,2)-1)*numJ+1:(size(x,2)+1)*numJ)-0.5*param.sampT*[reshape(df_dxt(1,:,:),[3,1]*numJ)+reshape(df_dxt_k(1,:,:),[3,1]*numJ),reshape(df_dxt_k(1,:,:),[3,1]*numJ)];
+ceq_grad(:,1,:) = p_temp;
 
 sampT = param.sampT;
-
+clear p_temp;
 parfor i=2:size(x,2)-2 % the first and the last 2 are special cases
     p_temp = gpuArray(zeros(size(x,1),2*numJ*(size(x,2)-1)));
     
@@ -75,10 +76,11 @@ parfor i=2:size(x,2)-2 % the first and the last 2 are special cases
     p_temp(numJ+1:2*numJ,(i+size(x,2)-3)*numJ+1:(i+size(x,2)-1)*numJ) = [eye(numJ),-eye(numJ)];
     
     %p2 terms
-    p_temp(:,(i-2)*numJ+1:i*numJ) = -0.5*sampT* [zeros(numJ),zeros(numJ);eye(numJ),eye(numJ);zeros(numJ),zeros(numJ)];
-    p_temp(:,(i+size(x,2)-3)*numJ+1:(i+size(x,2))*numJ) =-0.5*sampT*[reshape(df_dxt(i,:,:),[3,1]*numJ),reshape(df_dxt_k(i-1,:,:),[3,1]*numJ)+reshape(df_dxt(i,:,:),[3,1]*numJ),reshape(df_dxt_k(i-1,:,:),[3,1]*numJ)];
-%     p1_temp(numJ+1:2*numJ,i+size(x,2)-1:i+size(x,2)-1+numJ) = [eye(numJ),-eye(numJ)];
+    p_temp(:,(i-2)*numJ+1:i*numJ) = p_temp(:,(i-2)*numJ+1:i*numJ)-0.5*sampT* [zeros(numJ),zeros(numJ);eye(numJ),eye(numJ);zeros(numJ),zeros(numJ)];
+    p_temp(:,(i+size(x,2)-3)*numJ+1:(i+size(x,2))*numJ) =p_temp(:,(i+size(x,2)-3)*numJ+1:(i+size(x,2))*numJ)-0.5*sampT*[reshape(df_dxt(i,:,:),[3,1]*numJ),reshape(df_dxt_k(i,:,:),[3,1]*numJ)+reshape(df_dxt(i,:,:),[3,1]*numJ),reshape(df_dxt_k(i,:,:),[3,1]*numJ)];
+
     ceq_grad(:,i,:) = p_temp;
+    
 end
 
 % add the gradient of the last 2 time step
@@ -87,23 +89,25 @@ end
 % the p1 terms are similar, we take it out because we need to use parfor 
 p_temp = gpuArray(zeros(size(x,1),2*numJ*(size(x,2)-1)));
 
-p_temp(1:numJ,(size(x,2)-3)*numJ+1:(size(x,2)-1)*numJ) = [eye(numJ),-eye(numJ)];
-p_temp(numJ+1:2*numJ,(2*size(x,2)-4)*numJ+1:(2*size(x,2)-2)*numJ) = [eye(numJ),-eye(numJ)];
+
+p_temp(1:numJ,(size(x,2)-3)*numJ+1:(size(x,2)-1)*numJ) =p_temp(1:numJ,(size(x,2)-3)*numJ+1:(size(x,2)-1)*numJ)+ [eye(numJ),-eye(numJ)];
+p_temp(numJ+1:2*numJ,(2*size(x,2)-4)*numJ+1:(2*size(x,2)-2)*numJ) = p_temp(numJ+1:2*numJ,(2*size(x,2)-4)*numJ+1:(2*size(x,2)-2)*numJ)+[eye(numJ),-eye(numJ)];
 %   p2 terms
-p_temp(:,(size(x,2)-3)*numJ+1:(size(x,2)-1)*numJ) = -0.5*sampT* [zeros(numJ),zeros(numJ);eye(numJ),eye(numJ);zeros(numJ),zeros(numJ)];
-p_temp(:,(2*size(x,2)-4)*numJ+1:(2*size(x,2)-2)*numJ) =-0.5*sampT*[reshape(df_dxt(size(x,2)-1,:,:),[3,1]*numJ),reshape(df_dxt_k(size(x,2)-2,:,:),[3,1]*numJ)+reshape(df_dxt(size(x,2)-1,:,:),[3,1]*numJ)];
+p_temp(:,(size(x,2)-3)*numJ+1:(size(x,2)-1)*numJ) = p_temp(:,(size(x,2)-3)*numJ+1:(size(x,2)-1)*numJ)-0.5*sampT*[zeros(numJ),zeros(numJ);eye(numJ),eye(numJ);zeros(numJ),zeros(numJ)];
+p_temp(:,(2*size(x,2)-4)*numJ+1:(2*size(x,2)-2)*numJ) =p_temp(:,(2*size(x,2)-4)*numJ+1:(2*size(x,2)-2)*numJ)-0.5*sampT*[reshape(df_dxt(size(x,2)-1,:,:),[3,1]*numJ),reshape(df_dxt_k(size(x,2)-1,:,:),[3,1]*numJ)+reshape(df_dxt(size(x,2)-1,:,:),[3,1]*numJ)];
 
 ceq_grad(:,size(x,2)-1,:) = p_temp;
-
+clear p_temp;
 % m
 % p1 terms
 p_temp = gpuArray(zeros(size(x,1),2*numJ*(size(x,2)-1)));
 
-p_temp(1:numJ,(size(x,2)-2)*numJ+1:(size(x,2)-1)*numJ) = eye(numJ);
-p_temp(numJ+1:2*numJ,(2*size(x,2)-3)*numJ+1:(2*size(x,2)-2)*numJ) = eye(numJ);
+
+p_temp(1:numJ,(size(x,2)-2)*numJ+1:(size(x,2)-1)*numJ) = p_temp(1:numJ,(size(x,2)-2)*numJ+1:(size(x,2)-1)*numJ)+eye(numJ);
+p_temp(numJ+1:2*numJ,(2*size(x,2)-3)*numJ+1:(2*size(x,2)-2)*numJ) = p_temp(numJ+1:2*numJ,(2*size(x,2)-3)*numJ+1:(2*size(x,2)-2)*numJ)+eye(numJ);
 % p2 terms
-p_temp(numJ+1:2*numJ,(size(x,2)-2)*numJ+1:(size(x,2)-1)*numJ) = -0.5*param.sampT* eye(numJ);
-p_temp(:,(2*size(x,2)-3)*numJ+1:(2*size(x,2)-2)*numJ) =-0.5*param.sampT*[reshape(df_dxt(size(x,2),:,:),[3,1]*numJ)];
+p_temp(numJ+1:2*numJ,(size(x,2)-2)*numJ+1:(size(x,2)-1)*numJ) = p_temp(numJ+1:2*numJ,(size(x,2)-2)*numJ+1:(size(x,2)-1)*numJ)-0.5*param.sampT* eye(numJ);
+p_temp(:,(2*size(x,2)-3)*numJ+1:(2*size(x,2)-2)*numJ) =p_temp(:,(2*size(x,2)-3)*numJ+1:(2*size(x,2)-2)*numJ)-0.5*param.sampT*reshape(df_dxt(size(x,2),:,:),[3,1]*numJ);
 ceq_grad(:,size(x,2),:) = p_temp;
 
 

@@ -13,7 +13,7 @@ param.toe_th =- 1e2;
 param.gaitT = 1;
 param.sampT = 0.002;
 
-param.gaitLen = 1;
+param.gaitLen = 0.8;
 
 time = 0:param.sampT:param.gaitT;
 
@@ -90,8 +90,8 @@ prob.objective = @(x)objFun(x,param);
 %% solve
 
 options = optimoptions('fmincon','MaxIter',1e3,'MaxFunEvals',1e3,...
-    'Display','iter','GradObj','on','TolCon',1e-6,'SpecifyConstraintGradient',true,...
-    'SpecifyObjectiveGradient',true,'MaxIterations',100);
+    'Display','iter','GradObj','on','TolCon',1e-3,'SpecifyConstraintGradient',true,...
+    'SpecifyObjectiveGradient',true,'MaxIterations',100,'StepTolerance',1e-15);
 prob.options = options;
 prob.solver = 'fmincon';
 
