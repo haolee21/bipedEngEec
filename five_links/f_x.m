@@ -32,7 +32,9 @@ else
     % we name this term q1, and M\beta = q2, we cannot /M since the
     % dimension cannot work if we did not multiply tensor
     q2 = M\out_beta_t.'*sigma;
-    q1 = gpuArray(zeros(3*numJ,numJ));
+    q1 = zeros(3*numJ,numJ);
+%     q1 = gpuArray(q1);
+    
     q1(2,:) = dM_dx2(q1(2),q1(3),q1(4),q1(5))*q2;
     q1(3,:) = dM_dx3(q1(2),q1(3),q1(4),q1(5))*q2;
     q1(4,:) = dM_dx4(q1(2),q1(3),q1(4),q1(5))*q2;

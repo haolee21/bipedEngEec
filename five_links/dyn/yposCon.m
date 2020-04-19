@@ -1,7 +1,9 @@
 function [c,gradc] = yposCon(x)
 
-c = gpuArray(zeros(1,size(x,2)));
-gradc = gpuArray(zeros(size(x,1),size(x,2),size(x,2)));
+c = zeros(1,size(x,2));
+% c = gpuArray(c);
+gradc = zeros(size(x,1),size(x,2),size(x,2));
+% gradc = gpuArray(gradc);
 for i=1:size(x,2)
     curX = x(:,i);
     c(i)=-1*end_y_pos(curX.');

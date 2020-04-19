@@ -28,17 +28,23 @@ toe_th = param.toe_th;
 x_extend = [x(:,2:end);x(:,1:end-1)];%because parallel toolbox will be faster if we only use one column
 
 
-df_dxt = gpuArray(zeros(size(x,2),size(x,1),numJ));
-df_dxt_k = gpuArray(zeros(size(x,2)-1,size(x,1),numJ));
+df_dxt = zeros(size(x,2),size(x,1),numJ);
+% df_dxt = gpuArray(df_dxt);
+
+df_dxt_k = zeros(size(x,2)-1,size(x,1),numJ);
+% df_dxt_k = gpuArray(df_dxt_k);
 % the following loop only solve from f(x2,x1), f(x1) is ignored, we need to
 % do it first
-ceq_p22 = gpuArray(zeros(size(x,2),numJ));% this dimension is not correct, but we need to make it simplier in order to use parfor, it is [f1,f2,f3....], not [f1+f2,f2+f3] for now
+ceq_p22 = zeros(size(x,2),numJ);% this dimension is not correct, but we need to make it simplier in order to use parfor, it is [f1,f2,f3....], not [f1+f2,f2+f3] for now
+% ceq_p22 = gpuArray(ceq_p22);
+
+
 [out,grad_t,~] = f_x(x(:,1).',toe_th);
 df_dxt(1,:,:)=grad_t;
 ceq_p22(1,:) = out;
 
 
-parfor i=1:size(x,2)-1
+for i=1:size(x,2)-1
     
     [out,grad_t,grad_tk] = f_x(x_extend(:,i).',toe_th);
     df_dxt(i+1,:,:) = grad_t;
@@ -53,10 +59,12 @@ ceq_p22 = reshape(ceq_p22.',[size(ceq_p21,1),size(ceq_p21,2)]);
 ceq = ceq_p1-0.5*param.sampT*[ceq_p21;ceq_p22];
 
 % form the gradient
-ceq_grad = gpuArray(zeros(size(x,1),size(x,2),(size(x,2)-1)*2*numJ)); %total gradient, 3n x m x 2n(m-1)
+ceq_grad = zeros(size(x,1),size(x,2),(size(x,2)-1)*2*numJ); %total gradient, 3n x m x 2n(m-1)
+% ceq_grad = gpuArray(ceq_grad); 
 
 %calculate the first gradient since it is a special case
-p_temp = gpuArray(zeros(size(x,1),2*numJ*(size(x,2)-1)));
+p_temp = zeros(size(x,1),2*numJ*(size(x,2)-1));
+% p_temp = gpuArray(p_temp);
 
 %p1 terms
 p_temp(1:numJ,1:numJ) =p_temp(1:numJ,1:numJ)-eye(numJ);
@@ -68,8 +76,9 @@ ceq_grad(:,1,:) = p_temp;
 
 sampT = param.sampT;
 clear p_temp;
-parfor i=2:size(x,2)-2 % the first and the last 2 are special cases
-    p_temp = gpuArray(zeros(size(x,1),2*numJ*(size(x,2)-1)));
+for i=2:size(x,2)-2 % the first and the last 2 are special cases
+    p_temp = zeros(size(x,1),2*numJ*(size(x,2)-1));
+%     p_temp = gpuArray(p_temp);
     
     %p1 terms
     p_temp(1:numJ,(i-2)*numJ+1:i*numJ) = [eye(numJ),-eye(numJ)];
@@ -87,8 +96,8 @@ end
 
 %   m-1
 % the p1 terms are similar, we take it out because we need to use parfor 
-p_temp = gpuArray(zeros(size(x,1),2*numJ*(size(x,2)-1)));
-
+p_temp = zeros(size(x,1),2*numJ*(size(x,2)-1));
+% p_temp = gpuArray(p_temp);
 
 p_temp(1:numJ,(size(x,2)-3)*numJ+1:(size(x,2)-1)*numJ) =p_temp(1:numJ,(size(x,2)-3)*numJ+1:(size(x,2)-1)*numJ)+ [eye(numJ),-eye(numJ)];
 p_temp(numJ+1:2*numJ,(2*size(x,2)-4)*numJ+1:(2*size(x,2)-2)*numJ) = p_temp(numJ+1:2*numJ,(2*size(x,2)-4)*numJ+1:(2*size(x,2)-2)*numJ)+[eye(numJ),-eye(numJ)];
@@ -100,8 +109,8 @@ ceq_grad(:,size(x,2)-1,:) = p_temp;
 clear p_temp;
 % m
 % p1 terms
-p_temp = gpuArray(zeros(size(x,1),2*numJ*(size(x,2)-1)));
-
+p_temp = zeros(size(x,1),2*numJ*(size(x,2)-1));
+% p_temp = gpuArray(p_temp);
 
 p_temp(1:numJ,(size(x,2)-2)*numJ+1:(size(x,2)-1)*numJ) = p_temp(1:numJ,(size(x,2)-2)*numJ+1:(size(x,2)-1)*numJ)+eye(numJ);
 p_temp(numJ+1:2*numJ,(2*size(x,2)-3)*numJ+1:(2*size(x,2)-2)*numJ) = p_temp(numJ+1:2*numJ,(2*size(x,2)-3)*numJ+1:(2*size(x,2)-2)*numJ)+eye(numJ);
