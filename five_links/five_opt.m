@@ -5,15 +5,16 @@ addpath grad/
 addpath robotGen/
 addpath obj/
 addpath gaitCon/
+addpath plotRobot/
 %% simulation parameter
 
 param.numJ=5;
-param.toe_th =- 1e2;
+param.toe_th = -1e2;
 
 param.gaitT = 1;
-param.sampT = 0.002;
+param.sampT = 0.005;
 
-param.gaitLen = 0.8;
+param.gaitLen = 1.6;
 
 time = 0:param.sampT:param.gaitT;
 
@@ -24,12 +25,24 @@ max_vel = 30/180*pi;
 qmax = 170/180/pi;
 % q = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi);
 % dq = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi)*10;
-q = [pi/2*ones(1,length(time));
-     -pi/2*ones(1,length(time));
-     zeros(1,length(time));
-     -pi*ones(1,length(time));
-     pi/2*ones(1,length(time))];
-dq = zeros(param.numJ,length(time));
+
+qStart=[70/180*pi,-10/180*pi,45/180*pi,-pi,20/180*pi];
+qEnd = [pi+qStart(1)+qStart(2)+qStart(3)+qStart(4)+qStart(5),...
+        -qStart(5),...
+        qStart(4)+pi,...
+        -pi-qStart(3),...
+        -qStart(2)];
+
+q = [linspace(qStart(1),qEnd(1),length(time));
+     linspace(qStart(2),qEnd(2),length(time));
+     linspace(qStart(3),qEnd(3),length(time));
+     linspace(qStart(4),qEnd(4),length(time));
+     linspace(qStart(5),qEnd(5),length(time))];
+dq = [0,(q(1,2:end)-q(1,1:end-1))/param.sampT;
+      0,(q(2,2:end)-q(2,1:end-1))/param.sampT;
+      0,(q(3,2:end)-q(3,1:end-1))/param.sampT;
+      0,(q(4,2:end)-q(4,1:end-1))/param.sampT;
+      0,(q(5,2:end)-q(5,1:end-1))/param.sampT];
 
 
 u = zeros(param.numJ,length(q));
@@ -57,11 +70,11 @@ Aeq(1:param.numJ,1:param.numJ)=[1,1,1,1,1;
                                 0,1,0,0,0;];
 Aeq(1:param.numJ,end-param.numJ*3+1:end-param.numJ*2) = [-1,0,0,0,0;
                                                           0,1,0,0,0;
-                                                          0,0,1,0,0;
+                                                          0,0,-1,0,0;
                                                           0,0,0,1,0;
                                                           0,0,0,0,1;];
 prob.Aeq = Aeq;
-
+prob.beq = [-pi;0;-pi;-pi;0];
 % upper limit and lower limit for each joints
 prob.ub = [pi*ones(1,size(x0,2));
            zeros(1,size(x0,2));
@@ -89,9 +102,9 @@ prob.objective = @(x)objFun(x,param);
 
 %% solve
 
-options = optimoptions('fmincon','MaxIter',1e3,'MaxFunEvals',1e3,...
+options = optimoptions('fmincon','MaxIter',1000,...
     'Display','iter','GradObj','on','TolCon',1e-3,'SpecifyConstraintGradient',true,...
-    'SpecifyObjectiveGradient',true,'MaxIterations',100,'StepTolerance',1e-15);
+    'SpecifyObjectiveGradient',true,'StepTolerance',1e-15,'UseParallel',false);
 prob.options = options;
 prob.solver = 'fmincon';
 

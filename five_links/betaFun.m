@@ -18,11 +18,14 @@ out = (M\(u.'-V*dq.'-G.')).';
 
 % calculate gradient
 
-dTaudx = gpuArray([zeros(numJ);zeros(numJ);eye(numJ)]);
+dTaudx = [zeros(numJ);zeros(numJ);eye(numJ)];
+% dTaudx = gpuArray(dTaudx);
+
 dVdx = dV_dx(dq(1),dq(2),dq(3),dq(4),dq(5),q(2),q(3),q(4),q(5));
 dGdx = dG_dx(q(1),q(2),q(3),q(4),q(5)).';
 
-dMdxBeta=gpuArray(zeros(numJ*3,numJ));
+dMdxBeta=zeros(numJ*3,numJ);
+% dMdxBeta=gpuArray(dMdxBeta);
 
 dMdxBeta(2,:) = out*dM_dx2(q(2),q(3),q(4),q(5)); % can just use row vec since M is symmetric
 dMdxBeta(3,:) = out*dM_dx3(q(2),q(3),q(4),q(5));

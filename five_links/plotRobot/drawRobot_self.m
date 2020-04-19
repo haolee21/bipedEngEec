@@ -76,6 +76,6 @@ for frame=1:size(sol,2)
     
     % Format the axis:
     axis([xBnd,yBnd]); axis equal; axis off;
-    pause(0.01);
+    pause(0.002);
 end
 end
