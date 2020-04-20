@@ -5,7 +5,7 @@ xm=x(:,end).';
 initYPos=end_y_pos(x1);
 endYPos=end_y_pos(xm);
 
-ceq=[0.001-initYPos;0.001-endYPos];
+ceq=[0.0005-initYPos;0.0005-endYPos];
 
 
 ceq_grad1 = zeros(size(x,1),size(x,2));

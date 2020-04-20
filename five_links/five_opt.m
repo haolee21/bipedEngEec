@@ -9,9 +9,9 @@ addpath plotRobot/
 %% simulation parameter
 
 param.numJ=5;
-param.toe_th = -1e2;
+param.toe_th = 1e-2;
 
-param.gaitT = 1;
+param.gaitT = 0.8;
 param.sampT = 0.005;
 
 param.gaitLen = 1.8;
@@ -19,7 +19,7 @@ param.gaitLen = 1.8;
 time = 0:param.sampT:param.gaitT;
 
 % set torque/angular velocity constraints
-max_tau = 30;
+max_tau = 5;
 max_vel = 120/180*pi/param.sampT;
 %% initialize joint pos and torque
 qmax = 170/180/pi;
@@ -102,7 +102,7 @@ prob.objective = @(x)objFun(x,param);
 
 %% solve
 
-options = optimoptions('fmincon','MaxIter',50,...
+options = optimoptions('fmincon','MaxIter',200,...
     'Display','iter','GradObj','on','TolCon',1e-3,'SpecifyConstraintGradient',true,...
     'SpecifyObjectiveGradient',true,'StepTolerance',1e-15,'UseParallel',true);
 prob.options = options;
