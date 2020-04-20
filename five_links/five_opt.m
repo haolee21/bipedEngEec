@@ -14,13 +14,13 @@ param.toe_th = -1e2;
 param.gaitT = 1;
 param.sampT = 0.005;
 
-param.gaitLen = 1.6;
+param.gaitLen = 1.8;
 
 time = 0:param.sampT:param.gaitT;
 
 % set torque/angular velocity constraints
 max_tau = 30;
-max_vel = 30/180*pi;
+max_vel = 120/180*pi/param.sampT;
 %% initialize joint pos and torque
 qmax = 170/180/pi;
 % q = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi);
@@ -102,9 +102,9 @@ prob.objective = @(x)objFun(x,param);
 
 %% solve
 
-options = optimoptions('fmincon','MaxIter',1000,...
+options = optimoptions('fmincon','MaxIter',50,...
     'Display','iter','GradObj','on','TolCon',1e-3,'SpecifyConstraintGradient',true,...
-    'SpecifyObjectiveGradient',true,'StepTolerance',1e-15,'UseParallel',false);
+    'SpecifyObjectiveGradient',true,'StepTolerance',1e-15,'UseParallel',true);
 prob.options = options;
 prob.solver = 'fmincon';
 
