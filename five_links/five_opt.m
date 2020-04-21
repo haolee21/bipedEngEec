@@ -1,7 +1,7 @@
 %% Calculate the optimized trajectories for 5 link biped model with GRF
 clear;
 addpath dyn/
-addpath grad/
+
 addpath robotGen/
 addpath obj/
 addpath gaitCon/
