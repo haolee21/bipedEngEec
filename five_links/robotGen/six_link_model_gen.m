@@ -70,6 +70,15 @@ syms q1 q2 q3 q4 q5;
 endPos = turnRTtoMatrix(robot.A([1,2,3,4,5],[q1 q2 q3 q4 q5]))*[l_feet,0,0,1].';
 endPos = simplify(endPos(1:3,1));
 matlabFunction(endPos,'File','five_link_endPos');
+
+headPos = turnRTtoMatrix(robot.A([1,2,3],[q1,q2,q3]))*[l_torso,0,0,1].';
+headPos = simplify(headPos(1:3,1));
+matlabFunction(headPos(2),'File','five_link_head_h');
+% generate the gradient, but only to q1 q2 q3 (form the real gradient in
+% the function since we may add more joints to the end
+head_h_grad = [diff(headPos(2),q1),diff(headPos(2),q2),diff(headPos(3),q3)];
+matlabFunction(head_h_grad,'file','five_link_head_grad');
+
 %q6 is never important since 
 % 1. we directly calculate the ankle torque with jacobian
 % 2. we have no feet link, the mass and inertia are 0 for that joint

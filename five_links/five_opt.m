@@ -9,9 +9,10 @@ addpath plotRobot/
 %% simulation parameter
 
 param.numJ=5;
-param.toe_th = 1e-2;
+param.toe_th = 2e-1;
+param.head_h = 1.55; %the head should be at least 1.6m
 
-param.gaitT = 0.8;
+param.gaitT = 0.5;
 param.sampT = 0.005;
 
 param.gaitLen = 1.8;
@@ -19,8 +20,8 @@ param.gaitLen = 1.8;
 time = 0:param.sampT:param.gaitT;
 
 % set torque/angular velocity constraints
-max_tau = 5;
-max_vel = 120/180*pi/param.sampT;
+param.max_tau = 10;
+param.max_vel = 120/180*pi/param.sampT;
 %% initialize joint pos and torque
 qmax = 170/180/pi;
 % q = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi);
@@ -81,15 +82,15 @@ prob.ub = [pi*ones(1,size(x0,2));
            pi/2*ones(1,size(x0,2));
            -pi/2*ones(1,size(x0,2));
            pi*ones(1,size(x0,2));
-           max_vel*ones(param.numJ,size(x0,2));
-           max_tau*ones(param.numJ,size(x0,2))];
+           param.max_vel*ones(param.numJ,size(x0,2));
+           param.max_tau*ones(param.numJ,size(x0,2))];
 prob.lb = [zeros(1,size(x0,2));
            -pi*ones(1,size(x0,2));
            -pi/2*ones(1,size(x0,2));
            -3/2*pi*ones(1,size(x0,2));
            zeros(1,size(x0,2));
-           -max_vel*ones(param.numJ,size(x0,2));
-           -max_tau*ones(param.numJ,size(x0,2))];
+           -param.max_vel*ones(param.numJ,size(x0,2));
+           -param.max_tau*ones(param.numJ,size(x0,2))];
            
 
 
@@ -101,11 +102,23 @@ prob.objective = @(x)objFun(x,param);
 
 
 %% solve
-
-options = optimoptions('fmincon','MaxIter',200,...
+iterTime = 500;
+options = optimoptions('fmincon','MaxIter',iterTime,...
     'Display','iter','GradObj','on','TolCon',1e-3,'SpecifyConstraintGradient',true,...
-    'SpecifyObjectiveGradient',true,'StepTolerance',1e-15,'UseParallel',true);
+    'SpecifyObjectiveGradient',true,'StepTolerance',1e-10,'UseParallel',true);
 prob.options = options;
 prob.solver = 'fmincon';
 
-sol = fmincon(prob);
+[x,fval,exitflag,output] = fmincon(prob);
+
+[t1,~]=clock;
+fileName = [num2str(t1(2),'%02d'),num2str(t1(3),'%02d'),num2str(t1(4),'%02d'),num2str(t1(5),'%02d')];
+result.x = x;
+result.fval=fval;
+result.exitflag = exitflag;
+result.output = output;
+result.param = param;
+result.x0=x0;
+result.set_iterTime = iterTime;
+
+save(fileName,'result');

@@ -3,7 +3,7 @@ function [c,c_grad] = yposConst(x)
 
 idxList = 1:1:size(x,1);
 
-cfun =@(i)end_y_pos(x,i);
+cfun =@(i)end_y_pos(x,i);% this i is for arrayfun, end_y_pos does not take i as input
 gradfun = @(i)end_y_poss_grad(x,i);
 
 c = arrayfun(cfun,idxList);
