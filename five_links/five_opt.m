@@ -3,6 +3,7 @@ clear;
 addpath dyn/
 addpath robotGen/grad/
 addpath robotGen/
+addpath robotGen/posCons/
 addpath obj/
 addpath gaitCon/
 addpath plotRobot/
