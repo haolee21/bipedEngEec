@@ -4,7 +4,7 @@ addpath dyn/
 addpath robotGen/grad/
 addpath robotGen/
 addpath robotGen/posCons/
-addpath 
+addpath robotGen/dyn/
 addpath obj/
 addpath gaitCon/
 addpath plotRobot/
@@ -16,7 +16,7 @@ param.head_h = 1.55; %the head should be at least 1.6m
 
 param.gaitT = 0.5;
 param.sampT = 0.005;
-
+param.init_y = 5e-4; %initial feet height
 param.gaitLen = 1.8;
 
 time = 0:param.sampT:param.gaitT;
@@ -79,16 +79,16 @@ Aeq(1:param.numJ,end-param.numJ*3+1:end-param.numJ*2) = [-1,0,0,0,0;
 prob.Aeq = Aeq;
 prob.beq = [-pi;0;-pi;-pi;0];
 % upper limit and lower limit for each joints
-prob.ub = [pi*ones(1,size(x0,2));
-           zeros(1,size(x0,2));
-           pi/2*ones(1,size(x0,2));
-           -pi/2*ones(1,size(x0,2));
-           pi*ones(1,size(x0,2));
+prob.ub = [179/180*pi*ones(1,size(x0,2));
+           ones(1,size(x0,2));
+           89/180*pi*ones(1,size(x0,2));
+           -91/180*pi*ones(1,size(x0,2));
+           179/180*pi*ones(1,size(x0,2));
            param.max_vel*ones(param.numJ,size(x0,2));
            param.max_tau*ones(param.numJ,size(x0,2))];
-prob.lb = [zeros(1,size(x0,2));
-           -pi*ones(1,size(x0,2));
-           -pi/2*ones(1,size(x0,2));
+prob.lb = [ones(1,size(x0,2));
+           -179/180*pi*ones(1,size(x0,2));
+           -89/180*pi*ones(1,size(x0,2));
            -3/2*pi*ones(1,size(x0,2));
            zeros(1,size(x0,2));
            -param.max_vel*ones(param.numJ,size(x0,2));

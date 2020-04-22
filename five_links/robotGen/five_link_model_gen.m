@@ -67,7 +67,7 @@ robot.links(3).Jm=0;
 robot.links(4).Jm=0;
 robot.links(5).Jm=0;
 
-syms q1 q2 q3 q4 q5 th;
+syms q1 q2 q3 q4 q5 th dq1 dq2 dq3 dq4 dq5;
 endPos = turnRTtoMatrix(robot.A([1,2,3,4,5],[q1 q2 q3 q4 q5]))*[l_calf,0,0,1].';
 endPos = simplify(endPos(1:3,1));
 
@@ -112,7 +112,7 @@ J = cg.genjacobian();
 V = cg.gencoriolis();
 
 
-matlabFunction(M,'File','five_M');
-matlabFunction(G,'File','five_G');
-matlabFunction(J,'File','five_J');
-matlabFunction(V,'File','five_V');
+matlabFunction(M,'File','dyn/five_M','vars',[q2,q3,q4,q5]);
+matlabFunction(G,'File','dyn/five_G','vars',[q1 q2 q3 q4 q5]);
+matlabFunction(J,'File','dyn/five_J','vars',[q1 q2 q3 q4 q5]);
+matlabFunction(V,'File','dyn/five_V','vars',[q2 q3 q4 q5 dq1 dq2 dq3 dq4 dq5]);
