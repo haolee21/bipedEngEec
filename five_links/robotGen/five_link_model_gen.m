@@ -67,7 +67,7 @@ robot.links(3).Jm=0;
 robot.links(4).Jm=0;
 robot.links(5).Jm=0;
 
-syms q1 q2 q3 q4 q5;
+syms q1 q2 q3 q4 q5 th;
 endPos = turnRTtoMatrix(robot.A([1,2,3,4,5],[q1 q2 q3 q4 q5]))*[l_calf,0,0,1].';
 endPos = simplify(endPos(1:3,1));
 
@@ -95,6 +95,12 @@ matlabFunction(headPos(2),'File','posCons/head_y_pos','vars',{[q1,q2,q3]});
 head_y_grad = [diff(headPos(2),q1),diff(headPos(2),q2),diff(headPos(3),q3)];
 matlabFunction(head_y_grad,'file','posCons/head_y_grad','vars',{[q1,q2,q3]});
 
+
+%% activation function (sigma)
+sigma = 0.8*(0.5*tanh(400*(th-end_y_pos))+0.5);
+matlabFunction(sigma,'file','sigma_out','vars',[q1,q2,q3,q4,q5,th]);
+dsigma_dq = [diff(sigma,q1);diff(sigma,q2);diff(sigma,q3);diff(sigma,q4);diff(sigma,q5)];
+matlabFunction(dsigma_dq,'file','dsigma_dq','vars',[q1,q2,q3,q4,q5,th]);
 %q6 is never important since 
 % 1. we directly calculate the ankle torque with jacobian
 % 2. we have no feet link, the mass and inertia are 0 for that joint
