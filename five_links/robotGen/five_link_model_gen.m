@@ -67,7 +67,7 @@ robot.links(3).Jm=0;
 robot.links(4).Jm=0;
 robot.links(5).Jm=0;
 
-syms q1 q2 q3 q4 q5 th dq1 dq2 dq3 dq4 dq5;
+syms q1 q2 q3 q4 q5 th qd1 qd2 qd3 qd4 qd5;
 endPos = turnRTtoMatrix(robot.A([1,2,3,4,5],[q1 q2 q3 q4 q5]))*[l_calf,0,0,1].';
 endPos = simplify(endPos(1:3,1));
 
@@ -89,11 +89,20 @@ matlabFunction(end_y_grad,'file','posCons/end_y_grad','Vars',{[q1,q2,q3,q4,q5]})
 
 headPos = turnRTtoMatrix(robot.A([1,2,3],[q1,q2,q3]))*[l_torso,0,0,1].';
 headPos = simplify(headPos(1:3,1));
-matlabFunction(headPos(2),'File','posCons/head_y_pos','vars',{[q1,q2,q3]});
+head_y_pos = headPos(2);
+matlabFunction(head_y_pos,'File','posCons/head_y_pos','vars',{[q1,q2,q3]});
 % generate the gradient, but only to q1 q2 q3 (form the real gradient in
 % the function since we may add more joints to the end
-head_y_grad = [diff(headPos(2),q1),diff(headPos(2),q2),diff(headPos(3),q3)];
+head_y_grad = [diff(head_y_pos,q1),diff(head_y_pos,q2),diff(head_y_pos,q3)];
 matlabFunction(head_y_grad,'file','posCons/head_y_grad','vars',{[q1,q2,q3]});
+
+%% hip
+hipPos = turnRTtoMatrix(robot.A([1,2,3],[q1,q2,q3]))*[0,0,0,1].';
+hipPos = simplify(hipPos(1:3,1));
+hip_x_pos = hipPos(1);
+matlabFunction(hip_x_pos,'File','posCons/hip_x_pos','vars',{[q1,q2,q3]});
+hip_x_grad = [diff(hip_x_pos,q1),diff(hip_x_pos,q2),diff(hip_x_pos,q3)];
+matlabFunction(hip_x_grad,'file','posCons/hip_x_grad','vars',{[q1,q2,q3]});
 
 
 %% activation function (sigma)
@@ -115,4 +124,4 @@ V = cg.gencoriolis();
 matlabFunction(M,'File','dyn/five_M','vars',[q2,q3,q4,q5]);
 matlabFunction(G,'File','dyn/five_G','vars',[q1 q2 q3 q4 q5]);
 matlabFunction(J,'File','dyn/five_J','vars',[q1 q2 q3 q4 q5]);
-matlabFunction(V,'File','dyn/five_V','vars',[q2 q3 q4 q5 dq1 dq2 dq3 dq4 dq5]);
+matlabFunction(V,'File','dyn/five_V','vars',[q2 q3 q4 q5 qd1 qd2 qd3 qd4 qd5]);

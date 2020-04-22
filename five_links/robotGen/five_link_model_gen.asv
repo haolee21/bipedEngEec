@@ -67,7 +67,7 @@ robot.links(3).Jm=0;
 robot.links(4).Jm=0;
 robot.links(5).Jm=0;
 
-syms q1 q2 q3 q4 q5;
+syms q1 q2 q3 q4 q5 th qd1 qd2 qd3 qd4 qd5;
 endPos = turnRTtoMatrix(robot.A([1,2,3,4,5],[q1 q2 q3 q4 q5]))*[l_calf,0,0,1].';
 endPos = simplify(endPos(1:3,1));
 
@@ -77,25 +77,37 @@ endPos = simplify(endPos(1:3,1));
 end_x_pos = endPos(1,1);
 end_y_pos = endPos(2,1);
 matlabFunction(end_x_pos,'file','posCons/end_x_pos','Vars',[q1,q2,q3,q4,q5]);
-matlabFunction(end_y_pos,'file','posCons/end_y_pos','Vars',{q1,q2,q3,q4,q5});
+matlabFunction(end_y_pos,'file','posCons/end_y_pos','Vars',{[q1,q2,q3,q4,q5]});
 % grad
 
 end_x_grad = [diff(end_x_pos,q1),diff(end_x_pos,q2),diff(end_x_pos,q3),diff(end_x_pos,q4),diff(end_x_pos,q5)];
 matlabFunction(end_x_grad,'file','posCons/end_x_grad','Vars',[q1,q2,q3,q4,q5]);
 end_y_grad = [diff(end_y_pos,q1),diff(end_y_pos,q2),diff(end_y_pos,q3),diff(end_y_pos,q4),diff(end_y_pos,q5)];
 matlabFunction(end_y_grad,'file','posCons/end_y_grad','Vars',{[q1,q2,q3,q4,q5]});
-%%
 
-
+%% head
 
 headPos = turnRTtoMatrix(robot.A([1,2,3],[q1,q2,q3]))*[l_torso,0,0,1].';
 headPos = simplify(headPos(1:3,1));
-matlabFunction(headPos(2),'File','five_link_head_h');
+matlabFunction(headPos(2),'File','posCons/head_y_pos','vars',{[q1,q2,q3]});
 % generate the gradient, but only to q1 q2 q3 (form the real gradient in
 % the function since we may add more joints to the end
-head_h_grad = [diff(headPos(2),q1),diff(headPos(2),q2),diff(headPos(3),q3)];
-matlabFunction(head_h_grad,'file','five_link_head_grad');
+head_y_grad = [diff(headPos(2),q1),diff(headPos(2),q2),diff(headPos(3),q3)];
+matlabFunction(head_y_grad,'file','posCons/head_y_grad','vars',{[q1,q2,q3]});
 
+%% hip
+hipPos = turnRTtoMatrix(robot.A([1,2,3],[q1,q2,q3]))*[0,0,0,1].';
+hipPos = simplify(hipPos(1:3,1));
+matlabFunction(headPos(1),'File','posCons/head_x_pos','vars',{[q1,q2,q3]});
+hip_x_grad = [diff(hipPos(1),q1),diff(hipPos(1),q2),diff(hipPos(3),q3)];
+matlabFunction(head_y_grad,'file','posCons/head_y_grad','vars',{[q1,q2,q3]});
+
+
+%% activation function (sigma)
+sigma = 0.8*(0.5*tanh(400*(th-end_y_pos))+0.5);
+matlabFunction(sigma,'file','sigma_out','vars',[q1,q2,q3,q4,q5,th]);
+dsigma_dq = [diff(sigma,q1);diff(sigma,q2);diff(sigma,q3);diff(sigma,q4);diff(sigma,q5)];
+matlabFunction(dsigma_dq,'file','dsigma_dq','vars',[q1,q2,q3,q4,q5,th]);
 %q6 is never important since 
 % 1. we directly calculate the ankle torque with jacobian
 % 2. we have no feet link, the mass and inertia are 0 for that joint
@@ -107,7 +119,7 @@ J = cg.genjacobian();
 V = cg.gencoriolis();
 
 
-matlabFunction(M,'File','five_M');
-matlabFunction(G,'File','five_G');
-matlabFunction(J,'File','five_J');
-matlabFunction(V,'File','five_V');
+matlabFunction(M,'File','dyn/five_M','vars',[q2,q3,q4,q5]);
+matlabFunction(G,'File','dyn/five_G','vars',[q1 q2 q3 q4 q5]);
+matlabFunction(J,'File','dyn/five_J','vars',[q1 q2 q3 q4 q5]);
+matlabFunction(V,'File','dyn/five_V','vars',[q2 q3 q4 q5 qd1 qd2 qd3 qd4 qd5]);
