@@ -4,7 +4,7 @@ addpath dyn/
 addpath robotGen/grad/
 addpath robotGen/
 addpath robotGen/posCons/
-addpath robotGen/dyn/
+addpath 
 addpath obj/
 addpath gaitCon/
 addpath plotRobot/

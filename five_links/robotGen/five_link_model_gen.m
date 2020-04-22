@@ -84,17 +84,16 @@ end_x_grad = [diff(end_x_pos,q1),diff(end_x_pos,q2),diff(end_x_pos,q3),diff(end_
 matlabFunction(end_x_grad,'file','posCons/end_x_grad','Vars',[q1,q2,q3,q4,q5]);
 end_y_grad = [diff(end_y_pos,q1),diff(end_y_pos,q2),diff(end_y_pos,q3),diff(end_y_pos,q4),diff(end_y_pos,q5)];
 matlabFunction(end_y_grad,'file','posCons/end_y_grad','Vars',{[q1,q2,q3,q4,q5]});
-%%
 
-
+%% head
 
 headPos = turnRTtoMatrix(robot.A([1,2,3],[q1,q2,q3]))*[l_torso,0,0,1].';
 headPos = simplify(headPos(1:3,1));
-matlabFunction(headPos(2),'File','five_link_head_h');
+matlabFunction(headPos(2),'File','posCons/head_y_pos','vars',{[q1,q2,q3]});
 % generate the gradient, but only to q1 q2 q3 (form the real gradient in
 % the function since we may add more joints to the end
-head_h_grad = [diff(headPos(2),q1),diff(headPos(2),q2),diff(headPos(3),q3)];
-matlabFunction(head_h_grad,'file','five_link_head_grad');
+head_y_grad = [diff(headPos(2),q1),diff(headPos(2),q2),diff(headPos(3),q3)];
+matlabFunction(head_y_grad,'file','posCons/head_y_grad','vars',{[q1,q2,q3]});
 
 %q6 is never important since 
 % 1. we directly calculate the ankle torque with jacobian

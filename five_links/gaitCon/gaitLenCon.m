@@ -5,8 +5,8 @@ ceq = end_x_pos(xm(1),xm(2),xm(3),xm(4),xm(5))-end_x_pos(x1(1),x1(2),x1(3),x1(4)
 
 ceq_grad = zeros(size(x,1),size(x,2));
 
-ceq_grad(1:p.numJ,1)=-1*end_x_pos_grad(x1(1),x1(2),x1(3),x1(4),x1(5)).';
-ceq_grad(1:p.numJ,end)=end_x_pos_grad(xm(1),xm(2),xm(3),xm(4),xm(5)).';
+ceq_grad(1:p.numJ,1)=-1*end_x_grad(x1(1),x1(2),x1(3),x1(4),x1(5)).';
+ceq_grad(1:p.numJ,end)=end_x_grad(xm(1),xm(2),xm(3),xm(4),xm(5)).';
 
 
 ceq_grad = reshape(ceq_grad,[size(x,1)*size(x,2),1]);
