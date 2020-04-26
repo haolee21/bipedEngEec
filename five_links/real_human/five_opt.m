@@ -8,6 +8,7 @@ addpath robotGen/dyn/
 addpath obj/
 addpath gaitCon/
 addpath plotRobot/
+addpath robotGen/grf/
 %% simulation parameter
 
 param.numJ=5;
