@@ -13,7 +13,7 @@ addpath gaitCon/
 
 param.numJ=5;
 param.toe_th =1e-2;
-param.gndclear = 2e-2;
+
 param.gaitT = 0.08;
 param.sampT = 0.002;
 
@@ -64,8 +64,8 @@ clear c1 grad1 c2 grad2
 
 %% check yposCon
 
-[c1,grad1]=yposCon(x1,param);
-[c2,grad2]=yposCon(x2,param);
+[c1,grad1]=yposCon(x1);
+[c2,grad2]=yposCon(x2);
 err = c2-c1-0.5*(grad1+grad2).'*dx;
 
 
@@ -116,8 +116,8 @@ disp(['dG_dx gradient err:',string(gather(norm(err)/norm(diff_G)))]);
 
 % first we treat f_x as one input vector function
 
-[out_t1,grad_t1,grad_t_k1] = f_x(x1_row,param);
-[out_t2,grad_t2,grad_t_k2] = f_x(x2_row,param);
+[out_t1,grad_t1,grad_t_k1] = f_x(x1_row,param.toe_th);
+[out_t2,grad_t2,grad_t_k2] = f_x(x2_row,param.toe_th);
 
 err = out_t2-out_t1-dx_row*0.5*(grad_t1+grad_t2);
 disp(['f_x (single var) gradient err:',string(gather(norm(err)/norm(x2_row-x1_row)))]);
@@ -126,8 +126,8 @@ disp(['f_x (single var) gradient err:',string(gather(norm(err)/norm(x2_row-x1_ro
 x1_row_2 = x1(:,31).';
 x2_row_2 = x2(:,31).';
 dx_row_2 = x2_row_2-x1_row_2;
-[out_t1,grad_t1,grad_t_k1] = f_x([x1_row,x1_row_2],param);
-[out_t2,grad_t2,grad_t_k2] = f_x([x2_row,x2_row_2],param);
+[out_t1,grad_t1,grad_t_k1] = f_x([x1_row,x1_row_2],param.toe_th);
+[out_t2,grad_t2,grad_t_k2] = f_x([x2_row,x2_row_2],param.toe_th);
 
 err = out_t2-out_t1-dx_row*0.5*(grad_t1+grad_t2)-dx_row_2*0.5*(grad_t_k1+grad_t_k2);
 disp(['f_x (double var) gradient err:',string(gather(norm(err)/(norm(x2_row-x1_row)+norm(x2_row_2-x1_row_2))))]);

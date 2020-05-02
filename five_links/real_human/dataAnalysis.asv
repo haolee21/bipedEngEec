@@ -9,7 +9,7 @@ data2 = load('04271302.mat').result;
 time1 = 0:data1.param.sampT:data1.param.gaitT;
 time2 = 0:data2.param.sampT:data2.param.gaitT;
 
-figure(1);
+figure(2);
 subplot(2,2,1);
 plot(time1,data1.x(15,:),time2,data2.x(15,:));
 legend('with ankle-push','without');
@@ -37,14 +37,8 @@ xlabel('Time (sec)');
 
 
 %% test did we always touch the floor
-figure(2);
-sig = zeros(1,size(data1.x,2));
-for i=1:size(data1.x,2)
-    sig(i) = sigma_out(data1.x(1,i),data1.x(2,i),data1.x(3,i),data1.x(4,i),data1.x(5,i),data1.param.toe_th);
-    
-end
-plot(time1,sig);
-title('Ground Touching');
-xlabel('Time (sec)');
-ylabel('Ground Contact (%)');
+
+for i=1:size(resul
+
+
 

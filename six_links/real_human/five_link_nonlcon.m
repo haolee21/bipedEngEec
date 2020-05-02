@@ -2,10 +2,6 @@ function [c,ceq,gradc,gradceq] = five_link_nonlcon(x,p)
 
 % x = gpuArray(x);
 [c1,gradc1]=yposCon(x,p);
-
-c1 = 10*c1;
-gradc1 = 10*gradc1;
-
 [c2,gradc2]=headPosCon(x,p);
 c = [c1;c2];
 gradc=[gradc1,gradc2];

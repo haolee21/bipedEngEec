@@ -12,15 +12,14 @@ addpath robotGen/grf/
 %% simulation parameter
 
 param.numJ=5;
-param.toe_th = -1e2;
-param.gndclear = 2e-2;
+param.toe_th = 2e-1;
 param.head_h = 1.4 ; %the head should be at least 1.6m
 
 param.gaitT = 0.5;
 param.sampT = 0.005;
-param.init_y = 0; %initial feet height
+param.init_y = 5e-4; %initial feet height
 param.gaitLen = 1.8;
-param.hipLen=0.8;
+param.hipLen=0.85;
 time = 0:param.sampT:param.gaitT;
 
 % set torque/angular velocity constraints
@@ -107,7 +106,7 @@ prob.objective = @(x)objFun(x,param);
 
 %% solve
 iterTime = 1000;
-options = optimoptions('fmincon','MaxIter',iterTime,'MaxFunctionEvaluations',iterTime*100,...
+options = optimoptions('fmincon','MaxIter',iterTime,...
     'Display','iter','GradObj','on','TolCon',1e-3,'SpecifyConstraintGradient',true,...
     'SpecifyObjectiveGradient',true,'StepTolerance',1e-10,'UseParallel',true);
 prob.options = options;

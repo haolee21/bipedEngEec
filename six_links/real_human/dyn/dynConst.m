@@ -22,7 +22,7 @@ ceq_p1 = [ceq_p11;ceq_p12];
 ceq_p21 = reshape(dq(:,1:end-1)+dq(:,2:end),[size(ceq_p11,1),1]);
 
 
-toe_th = param.toe_th;
+
 
 
 x_extend = [x(:,2:end);x(:,1:end-1)];%because parallel toolbox will be faster if we only use one column
