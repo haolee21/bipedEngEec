@@ -5,31 +5,33 @@ addpath robotGen/grad/
 addpath robotGen/
 addpath robotGen/posCons/
 addpath robotGen/dyn/
+addpath robotGen/obj/
 addpath obj/
 addpath gaitCon/
 addpath plotRobot/
+addpath robotGen/grf/
 %% simulation parameter
 
 param.numJ=6;
-param.toe_th = 2e-2;
-param.head_h = 1.38 ; %the head should be at least 1.6m
-
+param.toe_th = 1e-2;
+param.head_h = 1.4 ; %the head should be at least 1.6m
+param.fri_coeff=2;
 param.gaitT = 0.5;
 param.sampT = 0.005;
 param.init_y = 5e-4; %initial feet height
 param.gaitLen = 1.8;
-param.hipLen=0.85;
+param.hipLen=0.81;
 time = 0:param.sampT:param.gaitT;
 
 % set torque/angular velocity constraints
-param.max_tau = 50;
-param.max_vel = 480/180*pi;
+param.max_tau = 200;
+param.max_vel = 360/180*pi;
 %% initialize joint pos and torque
 qmax = 170/180/pi;
 % q = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi);
 % dq = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi)*10;
 
-qStart=[70/180*pi,-10/180*pi,45/180*pi,-pi,20/180*pi,-125/180*pi];
+qStart=[70/180*pi,-10/180*pi,45/180*pi,-pi,30/180*pi,-125/180*pi];
 qEnd = [pi+qStart(1)+qStart(2)+qStart(3)+qStart(4)+qStart(5),...
         -qStart(5),...
         qStart(4)+pi,...
@@ -84,20 +86,20 @@ Aeq(1:param.numJ,end-param.numJ*3+1:end-param.numJ*2) = [-1,0,0,0,0,0;
 prob.Aeq = Aeq;
 prob.beq = [-pi;0;-pi;-pi;0;0];
 % upper limit and lower limit for each joints
-prob.ub = [179/180*pi*ones(1,size(x0,2));
-           ones(1,size(x0,2))/180*pi;
-           89/180*pi*ones(1,size(x0,2));
-           -91/180*pi*ones(1,size(x0,2));
-           179/180*pi*ones(1,size(x0,2));
+prob.ub = [180/180*pi*ones(1,size(x0,2));
+           zeros(1,size(x0,2))/180*pi;
+           90/180*pi*ones(1,size(x0,2));
+           -90/180*pi*ones(1,size(x0,2));
+           180/180*pi*ones(1,size(x0,2));
            -10/180*pi*ones(1,size(x0,2));
            param.max_vel*ones(param.numJ,size(x0,2));
            param.max_tau*ones(param.numJ,size(x0,2))];
 prob.lb = [ones(1,size(x0,2))/180*pi;
-           -179/180*pi*ones(1,size(x0,2));
-           -89/180*pi*ones(1,size(x0,2));
-           -269/180*pi*ones(1,size(x0,2));
-           ones(1,size(x0,2))/180*pi;
-           -170/180*pi*ones(1,size(x0,2));
+           -180/180*pi*ones(1,size(x0,2));
+           -90/180*pi*ones(1,size(x0,2));
+           -270/180*pi*ones(1,size(x0,2));
+           zeros(1,size(x0,2))/180*pi;
+           -140/180*pi*ones(1,size(x0,2));
            -param.max_vel*ones(param.numJ,size(x0,2));
            -param.max_tau*ones(param.numJ,size(x0,2))];
            

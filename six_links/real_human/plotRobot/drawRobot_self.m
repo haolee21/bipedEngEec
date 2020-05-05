@@ -11,9 +11,13 @@ function drawRobot_self(sol,fig)
 
 % Compute the points that will be used for plotting
 
-
-
-
+%% define mass for each segments, should be input param oneday
+m_foot = 1.05;
+m_calf = 3.52;
+m_thigh = 7.77;
+m_torso = 34.66+6.07;
+m_tot = m_foot+m_calf*2+m_thigh*2+m_torso;
+%%
 for frame=1:size(sol,2)
     P = getRobotPos(sol(1,frame),sol(2,frame),sol(3,frame),sol(4,frame),sol(5,frame),sol(6,frame));
     
@@ -36,6 +40,7 @@ for frame=1:size(sol,2)
     G5 = P(4:5,5);
     G6 = P(4:5,6);
     
+    com_x =( G1(1)*m_calf+G2(1)*m_thigh+G3(1)*m_torso+G4(1)*m_thigh+G5(1)*m_calf+G6(1)*m_foot)/m_tot;
     
     % Heuristics:
     L = 2;  % Maximum extended leg length
@@ -48,6 +53,7 @@ for frame=1:size(sol,2)
     colorSwing = [60,60,200]/255;
     colorTorso = [160, 80, 160]/255;
     
+  
     % Set up the figure
     hold off;
     clf(fig);
@@ -77,6 +83,8 @@ for frame=1:size(sol,2)
     plot(G4(1), G4(2),'ko','MarkerSize',8,'LineWidth',2);
     plot(G5(1), G5(2),'ko','MarkerSize',8,'LineWidth',2);
     plot(G6(1), G6(2),'ko','MarkerSize',8,'LineWidth',2);
+    
+    plot(com_x,0,'go','MarkerSize',8,'LineWidth',2);
     % Format the axis:
     axis([xBnd,yBnd]); axis equal; axis off;
     pause(0.002);
