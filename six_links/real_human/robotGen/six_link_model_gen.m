@@ -2,7 +2,7 @@
 %   the model has 5 segments, calf, thigh, and torso
 %%% 
 clear;
-addpath '.../'
+
 addpath ../
 
 numJ = 6;
@@ -162,14 +162,14 @@ V=dyn.V;
 J=dyn.J;
 
 
-dG_dx = [diff(G,q1).',diff(G,q2).',diff(G,q3).',diff(G,q4).',diff(G,q5).',diff(G,q6).',zeros(numJ,2*numJ)];
-dG_dx = vpa(dG_dx,5);
+dG_dx = [diff(G,q1);diff(G,q2);diff(G,q3);diff(G,q4);diff(G,q5);diff(G,q6);zeros(2*numJ,numJ)];
+
 matlabFunction(dG_dx,'file','grad/dG_dx','vars',[q1,q2,q3,q4,q5,q6]);       
 
 
 
 dV_dx = [diff(V,q1);diff(V,q2);diff(V,q3);diff(V,q4);diff(V,q5);diff(V,q6);diff(V,qd1);diff(V,qd2);diff(V,qd3);diff(V,qd4);diff(V,qd5);diff(V,qd6);zeros(numJ,numJ)];
-dV_dx = vpa(dV_dx,5);
+
 matlabFunction(dV_dx,'file','grad/dV_dx','vars',[qd1,qd2,qd3,qd4,qd5,qd6,q2,q3,q4,q5,q6]);
 
 
@@ -204,3 +204,26 @@ matlabFunction(dbeta_dx3,'file','grf/dbeta_dx3','vars',[q1,q2,q3,q4,q5,q6,th]);
 matlabFunction(dbeta_dx4,'file','grf/dbeta_dx4','vars',[q1,q2,q3,q4,q5,q6,th]);
 matlabFunction(dbeta_dx5,'file','grf/dbeta_dx5','vars',[q1,q2,q3,q4,q5,q6,th]);
 matlabFunction(dbeta_dx6,'file','grf/dbeta_dx6','vars',[q1,q2,q3,q4,q5,q6,th]);
+
+%% generate friction for object function 
+% we only consider the horizontal friction, so we use x_dot = J(1,:)*q_dot
+x_vel = J(1,:)*[qd1;qd2;qd3;qd4;qd5;qd6];
+fri = sigma_out(q1,q2,q3,q4,q5,q6,th)*(x_vel*x_vel);
+fri_dx = [diff(fri,q1);
+          diff(fri,q2);
+          diff(fri,q3);
+          diff(fri,q4);
+          diff(fri,q5);
+          diff(fri,q6);
+          diff(fri,qd1);
+          diff(fri,qd2);
+          diff(fri,qd3);
+          diff(fri,qd4);
+          diff(fri,qd5);
+          diff(fri,qd6);
+          zeros(numJ,1)];
+matlabFunction(fri,'file','obj/fri','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th});
+matlabFunction(fri_dx,'file','obj/fri_dx','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th});
+
+
+

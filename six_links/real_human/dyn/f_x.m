@@ -16,39 +16,36 @@ u1 = x(1,numJ*2+1:3*numJ);
 M = six_M(q1(2),q1(3),q1(4),q1(5),q1(6));
 G = six_G(q1(1),q1(2),q1(3),q1(4),q1(5),q1(6));
 V = six_V(q1(2),q1(3),q1(4),q1(5),q1(6),dq1(1),dq1(2),dq1(3),dq1(4),dq1(5),dq1(6));
+beta_out = beta_grf(q1(1),q1(2),q1(3),q1(4),q1(5),q1(6),p.toe_th);
 
-
-out_t = (M\(u1.'-V.'-G.')).';
+out_t = (M\(u1.'-V.'-G.'-beta_out*(u1-G).')).';
 
 
 dTaudx = [zeros(numJ);zeros(numJ);eye(numJ)];
 % dTaudx = gpuArray(dTaudx);
 
 dVdx = dV_dx(dq1(1),dq1(2),dq1(3),dq1(4),dq1(5),dq1(6),q1(2),q1(3),q1(4),q1(5),q1(6));
-dGdx = dG_dx(q1(1),q1(2),q1(3),q1(4),q1(5),q1(6)).';
-grad_t_k=[];
-grad_t = zeros(numJ*3,numJ);
-if(size(x,1)>1 )
-    u2 = x(2,numJ*2+1:3*numJ);
-    sigma = sigma_out(x(1,1),x(1,2),x(1,3),x(1,4),x(1,5),x(1,6),p.toe_th);
-    dsigma = [dsigma_dq(x(1,1),x(1,2),x(1,3),x(1,4),x(1,5),x(1,6),p.toe_th);zeros(numJ*2,1)]; 
-    
-    out_t = out_t - u2*sigma/M;
-    grad_t = -dsigma*u2/M;
-    
-    % find the gradient
-    
-    grad_t_k = -[zeros(numJ*2,numJ);eye(numJ)]*sigma/M;
-    
-end
+dGdx = dG_dx(q1(1),q1(2),q1(3),q1(4),q1(5),q1(6));
+grad_t_k=zeros(numJ*3,numJ);
 
-dMdxBeta=zeros(numJ*3,numJ);
+dBeta_dx = zeros(numJ*3,numJ);
+dBeta_dx(1,:) = (G-u1)*dbeta_dx1(q1(1),q1(2),q1(3),q1(4),q1(5),q1(6),p.toe_th).';
+dBeta_dx(2,:) = (G-u1)*dbeta_dx2(q1(1),q1(2),q1(3),q1(4),q1(5),q1(6),p.toe_th).';
+dBeta_dx(3,:) = (G-u1)*dbeta_dx3(q1(1),q1(2),q1(3),q1(4),q1(5),q1(6),p.toe_th).';
+dBeta_dx(4,:) = (G-u1)*dbeta_dx4(q1(1),q1(2),q1(3),q1(4),q1(5),q1(6),p.toe_th).';
+dBeta_dx(5,:) = (G-u1)*dbeta_dx5(q1(1),q1(2),q1(3),q1(4),q1(5),q1(6),p.toe_th).';
+dBeta_dx(6,:) = (G-u1)*dbeta_dx6(q1(1),q1(2),q1(3),q1(4),q1(5),q1(6),p.toe_th).';
+
+
+dMdx=zeros(numJ*3,numJ);
 % dMdxBeta=gpuArray(dMdxBeta);
 
-dMdxBeta(2,:) = out_t*dM_dx2(q1(2),q1(3),q1(4),q1(5),q1(6)); % can just use row vec since M is symmetric
-dMdxBeta(3,:) = out_t*dM_dx3(q1(2),q1(3),q1(4),q1(5),q1(6));
-dMdxBeta(4,:) = out_t*dM_dx4(q1(2),q1(3),q1(4),q1(5),q1(6));
-dMdxBeta(5,:) = out_t*dM_dx5(q1(2),q1(3),q1(4),q1(5),q1(6));
+dMdx(2,:) = out_t*dM_dx2(q1(2),q1(3),q1(4),q1(5),q1(6)); % can just use row vec since M is symmetric
+dMdx(3,:) = out_t*dM_dx3(q1(2),q1(3),q1(4),q1(5),q1(6));
+dMdx(4,:) = out_t*dM_dx4(q1(2),q1(3),q1(4),q1(5),q1(6));
+dMdx(5,:) = out_t*dM_dx5(q1(2),q1(3),q1(4),q1(5),q1(6));
+dMdx(6,:) = out_t*dM_dx6(q1(2),q1(3),q1(4),q1(5),q1(6));
 
-grad_t = grad_t + (dTaudx-dVdx-dGdx-dMdxBeta)/M; %we already add sigma term in grad_t
+grad_t =(dTaudx-dVdx-dGdx-dMdx+dBeta_dx+dGdx*beta_out.'-dTaudx*beta_out.')/M; %we already add sigma term in grad_t
+
 end
