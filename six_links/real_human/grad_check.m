@@ -122,62 +122,62 @@ disp(['dG_dx gradient err:',string(gather(norm(err)/norm(diff_G)))]);
 % clear c1 grad1 c2 grad2
 
 %% check beta_out (function for ground touching)
-beta1 = beta_grf(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
-beta2 = beta_grf(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
-dBeta1_x1 = dbeta_dx1(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
-dBeta1_x2 = dbeta_dx2(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
-dBeta1_x3 = dbeta_dx3(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
-dBeta1_x4 = dbeta_dx4(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
-dBeta1_x5 = dbeta_dx5(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
-dBeta1_x6 = dbeta_dx6(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
-
-dBeta2_x1 = dbeta_dx1(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
-dBeta2_x2 = dbeta_dx2(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
-dBeta2_x3 = dbeta_dx3(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
-dBeta2_x4 = dbeta_dx4(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
-dBeta2_x5 = dbeta_dx5(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
-dBeta2_x6 = dbeta_dx6(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
-
-dBeta_dx =zeros(param.numJ,param.numJ);
-dx = x2_row(1:param.numJ)-x1_row(1:param.numJ);
-dBeta_dx=dBeta_dx+dx(1)*0.5*(dBeta1_x1+dBeta2_x1);
-dBeta_dx=dBeta_dx+dx(2)*0.5*(dBeta1_x2+dBeta2_x2);
-dBeta_dx=dBeta_dx+dx(3)*0.5*(dBeta1_x3+dBeta2_x3);
-dBeta_dx=dBeta_dx+dx(4)*0.5*(dBeta1_x4+dBeta2_x4);
-dBeta_dx=dBeta_dx+dx(5)*0.5*(dBeta1_x5+dBeta2_x5);
-dBeta_dx=dBeta_dx+dx(6)*0.5*(dBeta1_x6+dBeta2_x6);
-err=beta2-beta1-dBeta_dx;
-disp(['beta gradient err:',string(gather(norm(err)/norm(beta2-beta1)))]);
-
-%% check beta*(u-G)
-u1 = x1_row(numJ*2+1:numJ*3);
-u2 = x2_row(numJ*2+1:numJ*3);
-G1 = six_G(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6));
-G2 = six_G(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6));
-out1 = beta1*(-G1).';
-out2 = beta2*(-G2).';
-dBeta1_dx =zeros(3*param.numJ,param.numJ);
-dBeta1_dx(1,:) = (-G1)*dbeta_dx1(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th).';
-dBeta1_dx(2,:) = (-G1)*dbeta_dx2(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th).';
-dBeta1_dx(3,:) = (-G1)*dbeta_dx3(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th).';
-dBeta1_dx(4,:) = (-G1)*dbeta_dx4(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th).';
-dBeta1_dx(5,:) = (-G1)*dbeta_dx5(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th).';
-dGdx1 = dG_dx(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6));
-dTaudx = [zeros(numJ);zeros(numJ);eye(numJ)];
-grad1 = dBeta1_dx+dTaudx*beta1.'-dGdx1*beta1.';
-
-dBeta2_dx =zeros(3*param.numJ,param.numJ);
-dBeta2_dx(1,:) = (-G2)*dbeta_dx1(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th).';
-dBeta2_dx(2,:) = (-G2)*dbeta_dx2(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th).';
-dBeta2_dx(3,:) = (-G2)*dbeta_dx3(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th).';
-dBeta2_dx(4,:) = (-G2)*dbeta_dx4(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th).';
-dBeta2_dx(5,:) = (-G2)*dbeta_dx5(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th).';
-dGdx2 = dG_dx(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6));
-grad2 = dBeta1_dx-dGdx2*beta2.';
-
-dx = x2_row-x1_row;
-err = out2-out1-0.5*(grad1+grad2).'*dx.';
-disp(['beta(u-G) gradient err:',string(gather(norm(err)/norm(out2-out1)))]);
+% beta1 = beta_grf(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
+% beta2 = beta_grf(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
+% dBeta1_x1 = dbeta_dx1(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
+% dBeta1_x2 = dbeta_dx2(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
+% dBeta1_x3 = dbeta_dx3(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
+% dBeta1_x4 = dbeta_dx4(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
+% dBeta1_x5 = dbeta_dx5(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
+% dBeta1_x6 = dbeta_dx6(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th);
+% 
+% dBeta2_x1 = dbeta_dx1(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
+% dBeta2_x2 = dbeta_dx2(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
+% dBeta2_x3 = dbeta_dx3(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
+% dBeta2_x4 = dbeta_dx4(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
+% dBeta2_x5 = dbeta_dx5(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
+% dBeta2_x6 = dbeta_dx6(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th);
+% 
+% dBeta_dx =zeros(param.numJ,param.numJ);
+% dx = x2_row(1:param.numJ)-x1_row(1:param.numJ);
+% dBeta_dx=dBeta_dx+dx(1)*0.5*(dBeta1_x1+dBeta2_x1);
+% dBeta_dx=dBeta_dx+dx(2)*0.5*(dBeta1_x2+dBeta2_x2);
+% dBeta_dx=dBeta_dx+dx(3)*0.5*(dBeta1_x3+dBeta2_x3);
+% dBeta_dx=dBeta_dx+dx(4)*0.5*(dBeta1_x4+dBeta2_x4);
+% dBeta_dx=dBeta_dx+dx(5)*0.5*(dBeta1_x5+dBeta2_x5);
+% dBeta_dx=dBeta_dx+dx(6)*0.5*(dBeta1_x6+dBeta2_x6);
+% err=beta2-beta1-dBeta_dx;
+% disp(['beta gradient err:',string(gather(norm(err)/norm(beta2-beta1)))]);
+% 
+% %% check beta*(u-G)
+% u1 = x1_row(numJ*2+1:numJ*3);
+% u2 = x2_row(numJ*2+1:numJ*3);
+% G1 = six_G(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6));
+% G2 = six_G(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6));
+% out1 = beta1*(-G1).';
+% out2 = beta2*(-G2).';
+% dBeta1_dx =zeros(3*param.numJ,param.numJ);
+% dBeta1_dx(1,:) = (-G1)*dbeta_dx1(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th).';
+% dBeta1_dx(2,:) = (-G1)*dbeta_dx2(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th).';
+% dBeta1_dx(3,:) = (-G1)*dbeta_dx3(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th).';
+% dBeta1_dx(4,:) = (-G1)*dbeta_dx4(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th).';
+% dBeta1_dx(5,:) = (-G1)*dbeta_dx5(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6),param.toe_th).';
+% dGdx1 = dG_dx(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6));
+% dTaudx = [zeros(numJ);zeros(numJ);eye(numJ)];
+% grad1 = dBeta1_dx+dTaudx*beta1.'-dGdx1*beta1.';
+% 
+% dBeta2_dx =zeros(3*param.numJ,param.numJ);
+% dBeta2_dx(1,:) = (-G2)*dbeta_dx1(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th).';
+% dBeta2_dx(2,:) = (-G2)*dbeta_dx2(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th).';
+% dBeta2_dx(3,:) = (-G2)*dbeta_dx3(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th).';
+% dBeta2_dx(4,:) = (-G2)*dbeta_dx4(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th).';
+% dBeta2_dx(5,:) = (-G2)*dbeta_dx5(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6),param.toe_th).';
+% dGdx2 = dG_dx(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x2_row(6));
+% grad2 = dBeta1_dx-dGdx2*beta2.';
+% 
+% dx = x2_row-x1_row;
+% err = out2-out1-0.5*(grad1+grad2).'*dx.';
+% disp(['beta(u-G) gradient err:',string(gather(norm(err)/norm(out2-out1)))]);
 
 %% check f_x
 

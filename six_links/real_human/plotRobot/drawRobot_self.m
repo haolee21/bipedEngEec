@@ -1,4 +1,4 @@
-function drawRobot_self(sol,fig)
+function drawRobot_self(sol,p,fig)
 % drawRobot(q,p)
 %
 % This function draws the robot with configuration q and parameters p
@@ -17,10 +17,17 @@ m_calf = 3.52;
 m_thigh = 7.77;
 m_torso = 34.66+6.07;
 m_tot = m_foot+m_calf*2+m_thigh*2+m_torso;
+startHip = -100;
 %%
 for frame=1:size(sol,2)
     P = getRobotPos(sol(1,frame),sol(2,frame),sol(3,frame),sol(4,frame),sol(5,frame),sol(6,frame));
-    
+    M_ext = Mext(sol(:,frame).');
+    G = six_G(sol(1,frame),sol(2,frame),sol(3,frame),sol(4,frame),sol(5,frame),sol(6,frame));
+    sigma = sigma_out(sol(1,frame),sol(2,frame),sol(3,frame),sol(4,frame),sol(5,frame),sol(6,frame),p.toe_th);
+    fext = sigma*M_ext*(G.'-sol(p.numJ*2+1:p.numJ*3,frame))/500; %divide 500 is just for ploting 
+    if(fext(2)<0)
+        fext = zeros(2,1);
+    end
 %     x = [0; P(1:2:end,frame)];
 %     y = [0; P(2:2:end,frame)];
     P1 = P(1:2,1);
@@ -85,6 +92,15 @@ for frame=1:size(sol,2)
     plot(G6(1), G6(2),'ko','MarkerSize',8,'LineWidth',2);
     
     plot(com_x,0,'go','MarkerSize',8,'LineWidth',2);
+    
+    quiver(P6(1),P6(2),fext(1),fext(2),'color','b');
+    yline(p.toe_th,'-','Toe Height');
+    yline(p.head_h,'-','Head Height');
+    if(startHip<-50)
+        startHip = P2(1);
+    end
+    xline(startHip,'-','Start');
+    xline(startHip-p.hipLen,'-','End');
     % Format the axis:
     axis([xBnd,yBnd]); axis equal; axis off;
     pause(0.002);

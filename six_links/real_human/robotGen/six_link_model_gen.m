@@ -188,7 +188,24 @@ matlabFunction(dM_dx6,'file','grad/dM_dx6','vars',[q2,q3,q4,q5,q6]);
 %% generate the beta function for GRF
 
 J_f = J(1:2,:).';
-beta_grf = sigma*J_f/(J_f.'*J_f)*J_f.';
+Mext = (J_f.'*J_f)\J_f.';
+beta_grf = sigma*J_f;
+
+dMext_dx1 = diff(Mext,q1);
+dMext_dx2 = diff(Mext,q2);
+dMext_dx3 = diff(Mext,q3);
+dMext_dx4 = diff(Mext,q4);
+dMext_dx5 = diff(Mext,q5);
+dMext_dx6 = diff(Mext,q6);
+
+matlabFunction(Mext,'file','grf/Mext','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_dx1,'file','grf/dMext_dx1','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_dx2,'file','grf/dMext_dx2','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_dx3,'file','grf/dMext_dx3','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_dx4,'file','grf/dMext_dx4','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_dx5,'file','grf/dMext_dx5','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_dx6,'file','grf/dMext_dx6','vars',{[q1,q2,q3,q4,q5,q6]});
+% beta_grf = sigma*J_f/(J_f.'*J_f)*J_f.';
 dbeta_dx1 = diff(beta_grf,q1);
 dbeta_dx2 = diff(beta_grf,q2);
 dbeta_dx3 = diff(beta_grf,q3);
@@ -196,14 +213,13 @@ dbeta_dx4 = diff(beta_grf,q4);
 dbeta_dx5 = diff(beta_grf,q5);
 dbeta_dx6 = diff(beta_grf,q6);
 
-matlabFunction(beta_grf,'file','grf/beta_grf','vars',[q1,q2,q3,q4,q5,q6,th]);
-
-matlabFunction(dbeta_dx1,'file','grf/dbeta_dx1','vars',[q1,q2,q3,q4,q5,q6,th]);
-matlabFunction(dbeta_dx2,'file','grf/dbeta_dx2','vars',[q1,q2,q3,q4,q5,q6,th]);
-matlabFunction(dbeta_dx3,'file','grf/dbeta_dx3','vars',[q1,q2,q3,q4,q5,q6,th]);
-matlabFunction(dbeta_dx4,'file','grf/dbeta_dx4','vars',[q1,q2,q3,q4,q5,q6,th]);
-matlabFunction(dbeta_dx5,'file','grf/dbeta_dx5','vars',[q1,q2,q3,q4,q5,q6,th]);
-matlabFunction(dbeta_dx6,'file','grf/dbeta_dx6','vars',[q1,q2,q3,q4,q5,q6,th]);
+matlabFunction(beta_grf,'file','grf/beta_grf','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_dx1,'file','grf/dbeta_dx1','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_dx2,'file','grf/dbeta_dx2','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_dx3,'file','grf/dbeta_dx3','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_dx4,'file','grf/dbeta_dx4','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_dx5,'file','grf/dbeta_dx5','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_dx6,'file','grf/dbeta_dx6','vars',{[q1,q2,q3,q4,q5,q6],th});
 
 %% generate friction for object function 
 % we only consider the horizontal friction, so we use x_dot = J(1,:)*q_dot
