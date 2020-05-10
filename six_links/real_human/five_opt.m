@@ -15,12 +15,12 @@ addpath robotGen/grf/
 param.numJ=6;
 param.toe_th = 1e-2;
 param.head_h = 1.3 ; %the head should be at least 1.6m
-param.fri_coeff=5;
+param.fri_coeff=10;
 param.gaitT = 0.5;
 param.sampT = 0.005;
 param.init_y = 5e-4; %initial feet height
 param.gaitLen = 1.7;
-param.hipLen=0.5;
+param.hipLen=0.7;
 param.gndclear = 5e-2;
 time = 0:param.sampT:param.gaitT;
 
@@ -28,7 +28,7 @@ time = 0:param.sampT:param.gaitT;
 param.max_tau = 200;
 param.max_vel = 360/180*pi;
 
-param.max_front_ank_tau = param.max_tau*0.0001;
+param.max_front_ank_tau = param.max_tau*0.000001;
 %% initialize joint pos and torque
 qmax = 170/180/pi;
 % q = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi);
@@ -77,15 +77,15 @@ prob.x0 = x0;
 prob.nonlcon = @(x)five_link_nonlcon(x,param);
 
 % linear constraints
-prob.beq = zeros(param.numJ,1);
-Aeq = zeros(param.numJ,size(x0,1)*size(x0,2));
-Aeq(1:param.numJ,1:param.numJ)=[1,1,1,1,1,0;
+
+Aeq = zeros(param.numJ,size(x0,1)*size(x0,2)); %start-end joint condition 
+Aeq(1:param.numJ,1:param.numJ)=[1,1,1,1,1,0;   %start frame 
                                 0,0,0,0,1,0;
                                 0,0,0,1,0,0;
                                 0,0,1,0,0,0;
                                 0,1,0,0,0,0;
                                 1,0,0,0,0,0;];
-Aeq(1:param.numJ,end-param.numJ*3+1:end-param.numJ*2) = [-1,0,0,0,0,0;
+Aeq(1:param.numJ,end-param.numJ*3+1:end-param.numJ*2) = [-1,0,0,0,0,0; % endframe
                                                           0,1,0,0,0,0;
                                                           0,0,1,0,0,0;
                                                           0,0,0,1,0,0;
@@ -93,6 +93,15 @@ Aeq(1:param.numJ,end-param.numJ*3+1:end-param.numJ*2) = [-1,0,0,0,0,0;
                                                           0,0,0,0,0,1];
 prob.Aeq = Aeq;
 prob.beq = [-pi;0;-pi;-pi;0;0];
+
+% back never bend backward
+% -1*q3 <-90 deg, 
+Asamp = zeros(1,3*param.numJ); % create A for single frame
+Asamp(1:3) = [-1,-1,-1];
+Acell = repmat({Asamp},1,param.gaitT/param.sampT+1);
+prob.Aineq = blkdiag(Acell{:});
+prob.bineq = -pi/2*ones(param.gaitT/param.sampT+1,1); 
+
 % upper limit and lower limit for each joints
 prob.ub = [180/180*pi*ones(1,size(x0,2));
            zeros(1,size(x0,2))/180*pi;
@@ -108,7 +117,7 @@ prob.lb = [ones(1,size(x0,2))/180*pi;
            -90/180*pi*ones(1,size(x0,2));
            -270/180*pi*ones(1,size(x0,2));
            zeros(1,size(x0,2))/180*pi;
-           -116/180*pi*ones(1,size(x0,2));
+           -145/180*pi*ones(1,size(x0,2));
            -param.max_vel*ones(param.numJ-1,size(x0,2));
            -param.max_front_ank_tau*ones(1,size(x0,2));
            -param.max_tau*ones(param.numJ,size(x0,2))];

@@ -135,8 +135,8 @@ end
 % ,not jacobian can be found
 % for here, we directly use forward kinematic to find the jacobian
 
-endT = turnRTtoMatrix(robot.A(1:1:numJ,q));
-endPos = endT(1:3,4);
+endT = turnRTtoMatrix(robot.A(1:1:numJ,q))*[robot.links(numJ).r.';1];
+endPos = endT(1:3,1);
 end_w = subs(w_all{1,end},[q_t,qd_t],[q,qd]);
 dyn.J = sym(zeros(6,numJ));
 for i=1:numJ
