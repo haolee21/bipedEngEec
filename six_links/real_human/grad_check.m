@@ -27,8 +27,9 @@ param.sampT = 0.001;
 param.init_y = 1e-3; %initial feet height
 param.gaitLen = 1.8;
 param.hipLen=0.7;
-
-
+param.jointW=[1,2,1,1,1,1];
+param.gndclear = 5e-2;
+param.fri_coeff=5;
 time = 0:param.sampT:param.gaitT;
 
 % set torque/angular velocity constraints

@@ -12,7 +12,7 @@ end
 
 dObj = fri_sum*p.fri_coeff;
 
-for i=1:p.numJ
+for i=2:p.numJ
     dObj = p.jointW(i)*0.5*sum(u(i,:).^2,'all')+dObj;
 end
 
