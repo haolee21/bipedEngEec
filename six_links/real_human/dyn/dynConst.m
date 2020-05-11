@@ -44,7 +44,7 @@ df_dxt(1,:,:)=grad_t;
 ceq_p22(1,:) = out;
 
 
-parfor i=1:size(x,2)-1
+for i=1:size(x,2)-1
     
     [out,grad_t,grad_tk] = f_x(x_extend(:,i).',param);
     df_dxt(i+1,:,:) = grad_t;
@@ -76,7 +76,7 @@ ceq_grad(:,1,:) = p_temp;
 
 sampT = param.sampT;
 clear p_temp;
-parfor i=2:size(x,2)-2 % the first and the last 2 are special cases
+for i=2:size(x,2)-2 % the first and the last 2 are special cases
     p_temp = zeros(size(x,1),2*numJ*(size(x,2)-1));
 %     p_temp = gpuArray(p_temp);
     

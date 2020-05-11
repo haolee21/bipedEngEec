@@ -15,8 +15,8 @@ addpath robotGen/grf/
 param.numJ=6;
 param.toe_th = 1e-2;
 param.head_h = 1.3 ; %the head should be at least 1.6m
-param.fri_coeff=10;
-param.gaitT = 0.5;
+param.fri_coeff=5;
+param.gaitT = 0.4;
 param.sampT = 0.005;
 param.init_y = 5e-4; %initial feet height
 param.gaitLen = 1.7;
@@ -25,10 +25,10 @@ param.gndclear = 5e-2;
 time = 0:param.sampT:param.gaitT;
 
 % set torque/angular velocity constraints
-param.max_tau = 200;
+param.max_tau = 20;
 param.max_vel = 360/180*pi;
 
-param.max_front_ank_tau = param.max_tau*0.000001;
+param.max_front_ank_tau = param.max_tau;
 %% initialize joint pos and torque
 qmax = 170/180/pi;
 % q = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi);
@@ -117,7 +117,7 @@ prob.lb = [ones(1,size(x0,2))/180*pi;
            -90/180*pi*ones(1,size(x0,2));
            -270/180*pi*ones(1,size(x0,2));
            zeros(1,size(x0,2))/180*pi;
-           -145/180*pi*ones(1,size(x0,2));
+           -125/180*pi*ones(1,size(x0,2));
            -param.max_vel*ones(param.numJ-1,size(x0,2));
            -param.max_front_ank_tau*ones(1,size(x0,2));
            -param.max_tau*ones(param.numJ,size(x0,2))];
