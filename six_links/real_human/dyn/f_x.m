@@ -1,9 +1,11 @@
-function [out_t,grad_t,grad_t_k] = f_x(x,p)
+function [out_t,grad_t,grad_t_k] = f_x(x,p,i)
 %% this inputs has the dimension numJoints*3 X 2
 %  only the current and delay ones are included
 %  th is the ypos height to have grf
 %  ypos is pre-calculated since it is easy to use gpuarray to achieve 
 
+%  i is the index,less than half the grf is on the toe, more than half the
+%  grf is on ankle
 numJ = p.numJ;
 if(length(x)>numJ*3)
     x = [x(1:numJ*3);x(numJ*3+1:end)]; %later comes first, [second,first]
@@ -16,6 +18,46 @@ u1 = x(1,numJ*2+1:3*numJ);
 M = six_M(q1(2),q1(3),q1(4),q1(5),q1(6));
 G1 = six_G(q1(1),q1(2),q1(3),q1(4),q1(5),q1(6));
 V = six_V(q1(2),q1(3),q1(4),q1(5),q1(6),dq1(1),dq1(2),dq1(3),dq1(4),dq1(5),dq1(6));
+
+if(i<floor(p.gaitT/p.sampT/2))
+    % grf act on toe
+    Mext = @Mext_toe;
+    beta_grf = @beta_grf_toe;
+    
+    dMext_dx1=@dMext_toe_dx1;
+    dMext_dx2=@dMext_toe_dx2;
+    dMext_dx3=@dMext_toe_dx3;
+    dMext_dx4=@dMext_toe_dx4;
+    dMext_dx5=@dMext_toe_dx5;
+    dMext_dx6=@dMext_toe_dx6;
+    
+    dbeta_dx1=@dbeta_toe_dx1;
+    dbeta_dx2=@dbeta_toe_dx2;
+    dbeta_dx3=@dbeta_toe_dx3;
+    dbeta_dx4=@dbeta_toe_dx4;
+    dbeta_dx5=@dbeta_toe_dx5;
+    dbeta_dx6=@dbeta_toe_dx6;
+else
+    % grf act on ank
+    Mext = @Mext_ank;
+    beta_grf = @beta_grf_ank;
+    
+    dMext_dx1=@dMext_ank_dx1;
+    dMext_dx2=@dMext_ank_dx2;
+    dMext_dx3=@dMext_ank_dx3;
+    dMext_dx4=@dMext_ank_dx4;
+    dMext_dx5=@dMext_ank_dx5;
+    dMext_dx6=@dMext_ank_dx6;
+    
+    dbeta_dx1=@dbeta_ank_dx1;
+    dbeta_dx2=@dbeta_ank_dx2;
+    dbeta_dx3=@dbeta_ank_dx3;
+    dbeta_dx4=@dbeta_ank_dx4;
+    dbeta_dx5=@dbeta_ank_dx5;
+    dbeta_dx6=@dbeta_ank_dx6;
+end
+
+
 M_ext = Mext(q1(1:numJ));
 beta1 = beta_grf(q1(1:numJ),p.toe_th);
 

@@ -13,24 +13,24 @@ addpath robotGen/grf/
 %% simulation parameter
 
 param.numJ=6;
-param.toe_th = 1e-2;
-param.head_h = 1.3 ; %the head should be at least 1.6m
-param.fri_coeff=5;
-param.gaitT = 0.4;
+param.toe_th =-8e-2;
+param.head_h = 1.4 ; %the head should be at least 1.6m
+param.fri_coeff=50;
+param.gaitT = 0.3;
 param.sampT = 0.005;
-param.init_y = 5e-4; %initial feet height
+param.init_y = -7e-2; %initial feet height
+param.heel_h = 7e-2;
 param.gaitLen = 1.7;
-param.hipLen=0.7;
-param.gndclear = 5e-2;
-
-param.jointW = [1,1,1,1,1,0.5];
+param.hipLen=0.3;
+param.gndclear = 0;
+param.jointW = [0.1,1,1,1,1,0.1];
 time = 0:param.sampT:param.gaitT;
 
 % set torque/angular velocity constraints
-param.max_tau = 20;
+param.max_tau = 10;
 param.max_vel = 360/180*pi;
 
-param.max_front_ank_tau = param.max_tau;
+param.max_front_ank_tau = param.max_tau*0.01;
 %% initialize joint pos and torque
 qmax = 170/180/pi;
 % q = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi);
@@ -39,7 +39,7 @@ q1 = 75;
 q2 = -5;
 q3 =45;
 q4 = -200;
-q5 =20;
+q5 =2;
 q6 = -180-q1-q2-q3-q4-q5;
 qStart=[q1/180*pi,q2/180*pi,q3/180*pi,q4/180*pi,q5/180*pi,q6/180*pi];
 qEnd = [pi+qStart(1)+qStart(2)+qStart(3)+qStart(4)+qStart(5),...
@@ -68,7 +68,7 @@ u = zeros(param.numJ,length(q));
 ext_tau = zeros(size(time,2),param.numJ);
 
 x0 = [q;dq;u];
-prob.x0 = x0;
+
 
 
 % dyndq = @(x,tauext)dyn_dq(x,tauext,jointNum,toe_th);
@@ -119,7 +119,7 @@ prob.lb = [ones(1,size(x0,2))/180*pi;
            -90/180*pi*ones(1,size(x0,2));
            -270/180*pi*ones(1,size(x0,2));
            zeros(1,size(x0,2))/180*pi;
-           -125/180*pi*ones(1,size(x0,2));
+           -145/180*pi*ones(1,size(x0,2));
            -param.max_vel*ones(param.numJ-1,size(x0,2));
            -param.max_front_ank_tau*ones(1,size(x0,2));
            -param.max_tau*ones(param.numJ,size(x0,2))];
@@ -134,15 +134,30 @@ prob.objective = @(x)objFun(x,param);
 
 
 %% solve
-iterTime = 1000;
+iterTime = 2000;
 options = optimoptions('fmincon','MaxIter',iterTime,...
     'Display','iter','GradObj','on','TolCon',1e-3,'SpecifyConstraintGradient',true,...
     'SpecifyObjectiveGradient',true,'StepTolerance',1e-10,'UseParallel',true);
 prob.options = options;
 prob.solver = 'fmincon';
 
-[x,fval,exitflag,output] = fmincon(prob);
+exitflag=0;
+x = x0;
+prob.x0 = x0;
+while(true)
+     
+    [x,fval,exitflag,output] = fmincon(prob);
+    if(exitflag==0)
+        prob.x0 = x;
+       
+    else
+        break;
+    end
+    
+    
+end
 
+    
 [t1,~]=clock;
 fileName = [num2str(t1(2),'%02d'),num2str(t1(3),'%02d'),num2str(t1(4),'%02d'),num2str(t1(5),'%02d')];
 result.x = x;
@@ -150,7 +165,7 @@ result.fval=fval;
 result.exitflag = exitflag;
 result.output = output;
 result.param = param;
-result.x0=x0;
+result.x0=prob.x0;
 result.set_iterTime = iterTime;
 
 save(fileName,'result');

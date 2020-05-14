@@ -39,14 +39,14 @@ ceq_p22 = zeros(size(x,2),numJ);% this dimension is not correct, but we need to 
 % ceq_p22 = gpuArray(ceq_p22);
 
 
-[out,grad_t,~] = f_x(x(:,1).',param);
+[out,grad_t,~] = f_x(x(:,1).',param,1);
 df_dxt(1,:,:)=grad_t;
 ceq_p22(1,:) = out;
 
 
 for i=1:size(x,2)-1
     
-    [out,grad_t,grad_tk] = f_x(x_extend(:,i).',param);
+    [out,grad_t,grad_tk] = f_x(x_extend(:,i).',param,i);
     df_dxt(i+1,:,:) = grad_t;
     df_dxt_k(i,:,:) = grad_tk;
     ceq_p22(i+1,:)=out;  %although it should be 2n(m-1)x1 vector, to use parallel toolbox, we assign to different column first

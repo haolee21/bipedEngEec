@@ -146,6 +146,15 @@ for i=1:numJ
     end
     
 end
-
-
+%% this is for a special jacobian on ankle, since external force also act on ankle joint
+endT2 = turnRTtoMatrix(robot.A(1:1:numJ,q))*[0;0;0;1];
+endPos2 = endT2(1:3,1);
+dyn.J2 = dyn.J;
+for i=1:numJ
+    for k=1:3
+        dyn.J2(k,i) = simplify(diff(endPos2(k,1),q(i)));
+        
+    end
+    
+end
 end

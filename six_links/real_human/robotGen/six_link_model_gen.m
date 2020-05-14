@@ -122,10 +122,15 @@ matlabFunction(hip_x_grad,'file','posCons/hip_x_grad','vars',{[q1,q2,q3]});
 
 
 %% activation function (sigma)
-sigma = 0.8*(0.5*tanh(400*(th-end_y_pos))+0.5);
-matlabFunction(sigma,'file','sigma_out','vars',[q1,q2,q3,q4,q5,q6,th]);
-dsigma_dq = [diff(sigma,q1);diff(sigma,q2);diff(sigma,q3);diff(sigma,q4);diff(sigma,q5);diff(sigma,q6)];
-matlabFunction(dsigma_dq,'file','dsigma_dq','vars',[q1,q2,q3,q4,q5,q6,th]);
+sigma_toe = (0.5*tanh(400*(th-end_y_pos))+0.5);
+matlabFunction(sigma_toe,'file','sigma_toe','vars',{[q1,q2,q3,q4,q5,q6],th});
+dsigma_toe = [diff(sigma_toe,q1);diff(sigma_toe,q2);diff(sigma_toe,q3);diff(sigma_toe,q4);diff(sigma_toe,q5);diff(sigma_toe,q6)];
+matlabFunction(dsigma_toe,'file','dsigma_toe','vars',{[q1,q2,q3,q4,q5,q6],th});
+
+sigma_ank =  (0.5*tanh(400*(th-ank_y_pos))+0.5);
+matlabFunction(sigma_ank,'file','sigma_ank','vars',{[q1,q2,q3,q4,q5,q6],th});
+dsigma_ank = [diff(sigma_ank,q1);diff(sigma_ank,q2);diff(sigma_ank,q3);diff(sigma_ank,q4);diff(sigma_ank,q5);diff(sigma_ank,q6)];
+matlabFunction(dsigma_ank,'file','dsigma_ank','vars',{[q1,q2,q3,q4,q5,q6],th});
 
 
 %% generate the joint/CoM pos (base frame) for graphing
@@ -166,7 +171,7 @@ G=dyn.G;
 M=dyn.M;
 V=dyn.V;
 J=dyn.J;
-
+J2 = dyn.J2; %jacobian on ankle
 
 dG_dx = [diff(G,q1);diff(G,q2);diff(G,q3);diff(G,q4);diff(G,q5);diff(G,q6);zeros(2*numJ,numJ)];
 
@@ -193,59 +198,117 @@ matlabFunction(dM_dx6,'file','grad/dM_dx6','vars',[q2,q3,q4,q5,q6]);
 
 %% generate the beta function for GRF
 
-J_f = J(1:2,:).';
-Mext = (J_f.'*J_f)\J_f.';
-beta_grf = sigma*J_f;
+% f_ext on toe
+J_f_toe = J(1:2,:).';
+Mext_toe = (J_f_toe.'*J_f_toe)\J_f_toe.';
+beta_grf_toe = sigma_toe*J_f_toe;
 
-dMext_dx1 = diff(Mext,q1);
-dMext_dx2 = diff(Mext,q2);
-dMext_dx3 = diff(Mext,q3);
-dMext_dx4 = diff(Mext,q4);
-dMext_dx5 = diff(Mext,q5);
-dMext_dx6 = diff(Mext,q6);
+dMext_toe_dx1 = diff(Mext_toe,q1);
+dMext_toe_dx2 = diff(Mext_toe,q2);
+dMext_toe_dx3 = diff(Mext_toe,q3);
+dMext_toe_dx4 = diff(Mext_toe,q4);
+dMext_toe_dx5 = diff(Mext_toe,q5);
+dMext_toe_dx6 = diff(Mext_toe,q6);
 
-matlabFunction(Mext,'file','grf/Mext','vars',{[q1,q2,q3,q4,q5,q6]});
-matlabFunction(dMext_dx1,'file','grf/dMext_dx1','vars',{[q1,q2,q3,q4,q5,q6]});
-matlabFunction(dMext_dx2,'file','grf/dMext_dx2','vars',{[q1,q2,q3,q4,q5,q6]});
-matlabFunction(dMext_dx3,'file','grf/dMext_dx3','vars',{[q1,q2,q3,q4,q5,q6]});
-matlabFunction(dMext_dx4,'file','grf/dMext_dx4','vars',{[q1,q2,q3,q4,q5,q6]});
-matlabFunction(dMext_dx5,'file','grf/dMext_dx5','vars',{[q1,q2,q3,q4,q5,q6]});
-matlabFunction(dMext_dx6,'file','grf/dMext_dx6','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(Mext_toe,'file','grf/Mext_toe','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_toe_dx1,'file','grf/dMext_toe_dx1','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_toe_dx2,'file','grf/dMext_toe_dx2','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_toe_dx3,'file','grf/dMext_toe_dx3','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_toe_dx4,'file','grf/dMext_toe_dx4','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_toe_dx5,'file','grf/dMext_toe_dx5','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_toe_dx6,'file','grf/dMext_toe_dx6','vars',{[q1,q2,q3,q4,q5,q6]});
 % beta_grf = sigma*J_f/(J_f.'*J_f)*J_f.';
-dbeta_dx1 = diff(beta_grf,q1);
-dbeta_dx2 = diff(beta_grf,q2);
-dbeta_dx3 = diff(beta_grf,q3);
-dbeta_dx4 = diff(beta_grf,q4);
-dbeta_dx5 = diff(beta_grf,q5);
-dbeta_dx6 = diff(beta_grf,q6);
+dbeta_toe_dx1 = diff(beta_grf_toe,q1);
+dbeta_toe_dx2 = diff(beta_grf_toe,q2);
+dbeta_toe_dx3 = diff(beta_grf_toe,q3);
+dbeta_toe_dx4 = diff(beta_grf_toe,q4);
+dbeta_toe_dx5 = diff(beta_grf_toe,q5);
+dbeta_toe_dx6 = diff(beta_grf_toe,q6);
 
-matlabFunction(beta_grf,'file','grf/beta_grf','vars',{[q1,q2,q3,q4,q5,q6],th});
-matlabFunction(dbeta_dx1,'file','grf/dbeta_dx1','vars',{[q1,q2,q3,q4,q5,q6],th});
-matlabFunction(dbeta_dx2,'file','grf/dbeta_dx2','vars',{[q1,q2,q3,q4,q5,q6],th});
-matlabFunction(dbeta_dx3,'file','grf/dbeta_dx3','vars',{[q1,q2,q3,q4,q5,q6],th});
-matlabFunction(dbeta_dx4,'file','grf/dbeta_dx4','vars',{[q1,q2,q3,q4,q5,q6],th});
-matlabFunction(dbeta_dx5,'file','grf/dbeta_dx5','vars',{[q1,q2,q3,q4,q5,q6],th});
-matlabFunction(dbeta_dx6,'file','grf/dbeta_dx6','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(beta_grf_toe,'file','grf/beta_grf_toe','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_toe_dx1,'file','grf/dbeta_toe_dx1','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_toe_dx2,'file','grf/dbeta_toe_dx2','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_toe_dx3,'file','grf/dbeta_toe_dx3','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_toe_dx4,'file','grf/dbeta_toe_dx4','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_toe_dx5,'file','grf/dbeta_toe_dx5','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_toe_dx6,'file','grf/dbeta_toe_dx6','vars',{[q1,q2,q3,q4,q5,q6],th});
+
+
+% external force on ankle
+J_f_ank = J2(1:2,:).';
+Mext_ank = (J_f_ank.'*J_f_ank)\J_f_ank.';
+beta_grf_ank = sigma_ank*J_f_ank;
+
+dMext_ank_dx1 = diff(Mext_ank,q1);
+dMext_ank_dx2 = diff(Mext_ank,q2);
+dMext_ank_dx3 = diff(Mext_ank,q3);
+dMext_ank_dx4 = diff(Mext_ank,q4);
+dMext_ank_dx5 = diff(Mext_ank,q5);
+dMext_ank_dx6 = diff(Mext_ank,q6);
+
+matlabFunction(Mext_ank,'file','grf/Mext_ank','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_ank_dx1,'file','grf/dMext_ank_dx1','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_ank_dx2,'file','grf/dMext_ank_dx2','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_ank_dx3,'file','grf/dMext_ank_dx3','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_ank_dx4,'file','grf/dMext_ank_dx4','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_ank_dx5,'file','grf/dMext_ank_dx5','vars',{[q1,q2,q3,q4,q5,q6]});
+matlabFunction(dMext_ank_dx6,'file','grf/dMext_ank_dx6','vars',{[q1,q2,q3,q4,q5,q6]});
+% beta_grf = sigma*J_f/(J_f.'*J_f)*J_f.';
+dbeta_ank_dx1 = diff(beta_grf_ank,q1);
+dbeta_ank_dx2 = diff(beta_grf_ank,q2);
+dbeta_ank_dx3 = diff(beta_grf_ank,q3);
+dbeta_ank_dx4 = diff(beta_grf_ank,q4);
+dbeta_ank_dx5 = diff(beta_grf_ank,q5);
+dbeta_ank_dx6 = diff(beta_grf_ank,q6);
+
+matlabFunction(beta_grf_ank,'file','grf/beta_grf_ank','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_ank_dx1,'file','grf/dbeta_ank_dx1','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_ank_dx2,'file','grf/dbeta_ank_dx2','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_ank_dx3,'file','grf/dbeta_ank_dx3','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_ank_dx4,'file','grf/dbeta_ank_dx4','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_ank_dx5,'file','grf/dbeta_ank_dx5','vars',{[q1,q2,q3,q4,q5,q6],th});
+matlabFunction(dbeta_ank_dx6,'file','grf/dbeta_ank_dx6','vars',{[q1,q2,q3,q4,q5,q6],th});
 
 %% generate friction for object function 
 % we only consider the horizontal friction, so we use x_dot = J(1,:)*q_dot
-x_vel = J(1,:)*[qd1;qd2;qd3;qd4;qd5;qd6];
-fri = sigma_out(q1,q2,q3,q4,q5,q6,th)*(x_vel*x_vel);
-fri_dx = [diff(fri,q1);
-          diff(fri,q2);
-          diff(fri,q3);
-          diff(fri,q4);
-          diff(fri,q5);
-          diff(fri,q6);
-          diff(fri,qd1);
-          diff(fri,qd2);
-          diff(fri,qd3);
-          diff(fri,qd4);
-          diff(fri,qd5);
-          diff(fri,qd6);
-          zeros(numJ,1)];
-matlabFunction(fri,'file','obj/fri','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th});
-matlabFunction(fri_dx,'file','obj/fri_dx','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th});
 
+%toe
+x_vel1 = J(1,:)*[qd1;qd2;qd3;qd4;qd5;qd6];
+fri1 = sigma_toe([q1,q2,q3,q4,q5,q6],th)*(x_vel1*x_vel1);
+fri1_dx = [diff(fri1,q1);
+          diff(fri1,q2);
+          diff(fri1,q3);
+          diff(fri1,q4);
+          diff(fri1,q5);
+          diff(fri1,q6);
+          diff(fri1,qd1);
+          diff(fri1,qd2);
+          diff(fri1,qd3);
+          diff(fri1,qd4);
+          diff(fri1,qd5);
+          diff(fri1,qd6);
+          zeros(numJ,1)];
+matlabFunction(fri1,'file','obj/fri_toe','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th});
+matlabFunction(fri1_dx,'file','obj/fri_toe_dx','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th});
+
+% ankle
+
+x_vel2 = J2(1,:)*[qd1;qd2;qd3;qd4;qd5;qd6];
+fri2 = sigma_ank([q1,q2,q3,q4,q5,q6],th)*(x_vel2*x_vel2);
+fri2_dx = [diff(fri2,q1);
+          diff(fri2,q2);
+          diff(fri2,q3);
+          diff(fri2,q4);
+          diff(fri2,q5);
+          diff(fri2,q6);
+          diff(fri2,qd1);
+          diff(fri2,qd2);
+          diff(fri2,qd3);
+          diff(fri2,qd4);
+          diff(fri2,qd5);
+          diff(fri2,qd6);
+          zeros(numJ,1)];
+matlabFunction(fri2,'file','obj/fri_ank','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th});
+matlabFunction(fri2_dx,'file','obj/fri_ank_dx','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th});
 
 

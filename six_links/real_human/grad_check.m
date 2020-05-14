@@ -184,8 +184,8 @@ disp(['dG_dx gradient err:',string(gather(norm(err)/norm(diff_G)))]);
 
 % first we treat f_x as one input vector function
 
-[out_t1,grad_t1,grad_t_k1] = f_x(x1_row,param);
-[out_t2,grad_t2,grad_t_k2] = f_x(x2_row,param);
+[out_t1,grad_t1,grad_t_k1] = f_x(x1_row,param,850);
+[out_t2,grad_t2,grad_t_k2] = f_x(x2_row,param,850);
 
 err = out_t2-out_t1-dx_row*0.5*(grad_t1+grad_t2);
 disp(['f_x (single var) gradient err:',string(gather(norm(err)/norm(out_t2-out_t1)))]);
