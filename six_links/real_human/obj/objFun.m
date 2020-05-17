@@ -13,8 +13,8 @@ for i=1:half_idx
 end
 for i = half_idx+1:size(x,2)
     
-    fri_sum = fri_sum + fri_ank([q(:,i);dq(:,i)].',p.toe_th);
-    fri_grad(:,i) = fri_ank_dx([q(:,i);dq(:,i)].',p.toe_th);
+    fri_sum = fri_sum + fri_heel([q(:,i);dq(:,i)].',p.toe_th);
+    fri_grad(:,i) = fri_heel_dx([q(:,i);dq(:,i)].',p.toe_th);
     
 end
 
@@ -24,7 +24,7 @@ dObj = fri_sum*p.fri_coeff;
 ucount = zeros(size(u,1),size(u,2)); % not all u counts, for knee, if it reaches 0 deg it can support by mechanical
 for i=1:p.numJ
     if (i==2 ||i==5)
-        temp = abs(q(i,:))>0.0873; %5 deg
+        temp = abs(q(i,:))>-1;%0.0873; %5 deg   %I mod this line to make it always true since this method does not consider diff(q)
         ucount(i,:) = temp.*u(i,:);
     else
         ucount(i,:) = u(i,:);

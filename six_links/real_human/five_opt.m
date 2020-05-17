@@ -13,41 +13,44 @@ addpath robotGen/grf/
 %% simulation parameter
 
 param.numJ=6;
-param.toe_th =-8e-2;
-param.head_h = 1.4 ; %the head should be at least 1.6m
+param.toe_th =-6e-2;
+param.head_h = 1.3 ; %the head should be at least 1.6m
 param.fri_coeff=50;
 param.gaitT = 0.3;
 param.sampT = 0.005;
-param.init_y = -7e-2; %initial feet height
-param.heel_h = 7e-2;
-param.gaitLen = 1.7;
-param.hipLen=0.3;
-param.gndclear = 0;
+param.init_y = -6.5e-2; %initial feet height
+param.heel_h = 0.07; %this is fix in the model parameter
+
+param.hipLen=0.35;
+param.gndclear = -4e-2;
 param.jointW = [0.1,1,1,1,1,0.1];
 time = 0:param.sampT:param.gaitT;
 
 % set torque/angular velocity constraints
-param.max_tau = 10;
+param.max_tau = 100;
 param.max_vel = 360/180*pi;
 
-param.max_front_ank_tau = param.max_tau*0.01;
+param.max_front_ank_tau = param.max_tau;
 %% initialize joint pos and torque
 qmax = 170/180/pi;
 % q = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi);
 % dq = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi)*10;
-q1 = 75;
+q1 = 70;
 q2 = -5;
 q3 =45;
-q4 = -200;
+q4 = -180;
 q5 =2;
-q6 = -180-q1-q2-q3-q4-q5;
+
+
+q6 = -180-q1-q2-q3-q4-q5+atan2d(param.heel_h,0.26);%0.26 is feet length
+
 qStart=[q1/180*pi,q2/180*pi,q3/180*pi,q4/180*pi,q5/180*pi,q6/180*pi];
 qEnd = [pi+qStart(1)+qStart(2)+qStart(3)+qStart(4)+qStart(5),...
         -qStart(5),...
         -qStart(4)-pi,...
         -pi-qStart(3),...
         -qStart(2),...
-        -qStart(1)];
+        -qStart(1)+atan2(param.heel_h,0.26)];
 
 q = [linspace(qStart(1),qEnd(1),length(time));
      linspace(qStart(2),qEnd(2),length(time));
@@ -86,7 +89,7 @@ Aeq(1:param.numJ,1:param.numJ)=[1,1,1,1,1,0;   %start frame
                                 0,0,0,1,0,0;
                                 0,0,1,0,0,0;
                                 0,1,0,0,0,0;
-                                1,0,0,0,0,0;];
+                                1,0,0,0,0,0];
 Aeq(1:param.numJ,end-param.numJ*3+1:end-param.numJ*2) = [-1,0,0,0,0,0; % endframe
                                                           0,1,0,0,0,0;
                                                           0,0,1,0,0,0;
@@ -94,31 +97,31 @@ Aeq(1:param.numJ,end-param.numJ*3+1:end-param.numJ*2) = [-1,0,0,0,0,0; % endfram
                                                           0,0,0,0,1,0;
                                                           0,0,0,0,0,1];
 prob.Aeq = Aeq;
-prob.beq = [-pi;0;-pi;-pi;0;0];
+prob.beq = [-pi;0;-pi;-pi;0;atan2(param.heel_h,0.26)];
 
 % back never bend backward
 % -1*q3 <-90 deg, 
 Asamp = zeros(1,3*param.numJ); % create A for single frame
-Asamp(1:3) = [-1,-1,-1];
+Asamp(1:3) = [-1,-1,-1];    
 Acell = repmat({Asamp},1,param.gaitT/param.sampT+1);
 prob.Aineq = blkdiag(Acell{:});
 prob.bineq = -pi/2*ones(param.gaitT/param.sampT+1,1); 
 
 % upper limit and lower limit for each joints
-prob.ub = [180/180*pi*ones(1,size(x0,2));
-           zeros(1,size(x0,2))/180*pi;
-           90/180*pi*ones(1,size(x0,2));
-           -90/180*pi*ones(1,size(x0,2));
-           180/180*pi*ones(1,size(x0,2));
+prob.ub = [179/180*pi*ones(1,size(x0,2));
+           ones(1,size(x0,2))/180*pi;
+           89/180*pi*ones(1,size(x0,2));
+           -91/180*pi*ones(1,size(x0,2));
+           179/180*pi*ones(1,size(x0,2));
            -10/180*pi*ones(1,size(x0,2));
            param.max_vel*ones(param.numJ,size(x0,2));
            param.max_front_ank_tau*ones(1,size(x0,2));
            param.max_tau*ones(param.numJ-1,size(x0,2))];
 prob.lb = [ones(1,size(x0,2))/180*pi;
-           -180/180*pi*ones(1,size(x0,2));
-           -90/180*pi*ones(1,size(x0,2));
-           -270/180*pi*ones(1,size(x0,2));
-           zeros(1,size(x0,2))/180*pi;
+           -179/180*pi*ones(1,size(x0,2));
+           -89/180*pi*ones(1,size(x0,2));
+           -259/180*pi*ones(1,size(x0,2));
+           ones(1,size(x0,2))/180*pi;
            -145/180*pi*ones(1,size(x0,2));
            -param.max_vel*ones(param.numJ-1,size(x0,2));
            -param.max_front_ank_tau*ones(1,size(x0,2));
@@ -149,6 +152,7 @@ while(true)
     [x,fval,exitflag,output] = fmincon(prob);
     if(exitflag==0)
         prob.x0 = x;
+        
        
     else
         break;

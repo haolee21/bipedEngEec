@@ -22,7 +22,7 @@ V = six_V(q1(2),q1(3),q1(4),q1(5),q1(6),dq1(1),dq1(2),dq1(3),dq1(4),dq1(5),dq1(6
 if(i<floor(p.gaitT/p.sampT/2))
     % grf act on toe
     Mext = @Mext_toe;
-    beta_grf = @beta_grf_toe;
+    beta_grf = @(q)beta_grf_toe(q,p.toe_th);
     
     dMext_dx1=@dMext_toe_dx1;
     dMext_dx2=@dMext_toe_dx2;
@@ -31,35 +31,35 @@ if(i<floor(p.gaitT/p.sampT/2))
     dMext_dx5=@dMext_toe_dx5;
     dMext_dx6=@dMext_toe_dx6;
     
-    dbeta_dx1=@dbeta_toe_dx1;
-    dbeta_dx2=@dbeta_toe_dx2;
-    dbeta_dx3=@dbeta_toe_dx3;
-    dbeta_dx4=@dbeta_toe_dx4;
-    dbeta_dx5=@dbeta_toe_dx5;
-    dbeta_dx6=@dbeta_toe_dx6;
+    dbeta_dx1=@(q)dbeta_toe_dx1(q,p.toe_th);
+    dbeta_dx2=@(q)dbeta_toe_dx2(q,p.toe_th);
+    dbeta_dx3=@(q)dbeta_toe_dx3(q,p.toe_th);
+    dbeta_dx4=@(q)dbeta_toe_dx4(q,p.toe_th);
+    dbeta_dx5=@(q)dbeta_toe_dx5(q,p.toe_th);
+    dbeta_dx6=@(q)dbeta_toe_dx6(q,p.toe_th);
 else
     % grf act on ank
-    Mext = @Mext_ank;
-    beta_grf = @beta_grf_ank;
+    Mext = @Mext_heel;
+    beta_grf = @(q)beta_grf_heel(q,p.toe_th);
     
-    dMext_dx1=@dMext_ank_dx1;
-    dMext_dx2=@dMext_ank_dx2;
-    dMext_dx3=@dMext_ank_dx3;
-    dMext_dx4=@dMext_ank_dx4;
-    dMext_dx5=@dMext_ank_dx5;
-    dMext_dx6=@dMext_ank_dx6;
+    dMext_dx1=@dMext_heel_dx1;
+    dMext_dx2=@dMext_heel_dx2;
+    dMext_dx3=@dMext_heel_dx3;
+    dMext_dx4=@dMext_heel_dx4;
+    dMext_dx5=@dMext_heel_dx5;
+    dMext_dx6=@dMext_heel_dx6;
     
-    dbeta_dx1=@dbeta_ank_dx1;
-    dbeta_dx2=@dbeta_ank_dx2;
-    dbeta_dx3=@dbeta_ank_dx3;
-    dbeta_dx4=@dbeta_ank_dx4;
-    dbeta_dx5=@dbeta_ank_dx5;
-    dbeta_dx6=@dbeta_ank_dx6;
+    dbeta_dx1=@(q)dbeta_heel_dx1(q,p.toe_th);
+    dbeta_dx2=@(q)dbeta_heel_dx2(q,p.toe_th);
+    dbeta_dx3=@(q)dbeta_heel_dx3(q,p.toe_th);
+    dbeta_dx4=@(q)dbeta_heel_dx4(q,p.toe_th);
+    dbeta_dx5=@(q)dbeta_heel_dx5(q,p.toe_th);
+    dbeta_dx6=@(q)dbeta_heel_dx6(q,p.toe_th);
 end
 
 
 M_ext = Mext(q1(1:numJ));
-beta1 = beta_grf(q1(1:numJ),p.toe_th);
+beta1 = beta_grf(q1(1:numJ));
 
 % calculate dMext_dx first since later we need to mod the value based on
 % extF
@@ -109,12 +109,12 @@ dGdx = dG_dx(q1(1),q1(2),q1(3),q1(4),q1(5),q1(6));
 
 
 dBeta1_dx = zeros(numJ*3,numJ);
-dBeta1_dx(1,:) = (u1-G1)*M_ext.'*dbeta_dx1(q1(1:numJ),p.toe_th).';
-dBeta1_dx(2,:) = (u1-G1)*M_ext.'*dbeta_dx2(q1(1:numJ),p.toe_th).';
-dBeta1_dx(3,:) = (u1-G1)*M_ext.'*dbeta_dx3(q1(1:numJ),p.toe_th).';
-dBeta1_dx(4,:) = (u1-G1)*M_ext.'*dbeta_dx4(q1(1:numJ),p.toe_th).';
-dBeta1_dx(5,:) = (u1-G1)*M_ext.'*dbeta_dx5(q1(1:numJ),p.toe_th).';
-dBeta1_dx(6,:) = (u1-G1)*M_ext.'*dbeta_dx6(q1(1:numJ),p.toe_th).';
+dBeta1_dx(1,:) = (u1-G1)*M_ext.'*dbeta_dx1(q1(1:numJ)).';
+dBeta1_dx(2,:) = (u1-G1)*M_ext.'*dbeta_dx2(q1(1:numJ)).';
+dBeta1_dx(3,:) = (u1-G1)*M_ext.'*dbeta_dx3(q1(1:numJ)).';
+dBeta1_dx(4,:) = (u1-G1)*M_ext.'*dbeta_dx4(q1(1:numJ)).';
+dBeta1_dx(5,:) = (u1-G1)*M_ext.'*dbeta_dx5(q1(1:numJ)).';
+dBeta1_dx(6,:) = (u1-G1)*M_ext.'*dbeta_dx6(q1(1:numJ)).';
 
 
 
@@ -158,6 +158,8 @@ dMdx(3,:) = out_t*dM_dx3(q1(2),q1(3),q1(4),q1(5),q1(6));
 dMdx(4,:) = out_t*dM_dx4(q1(2),q1(3),q1(4),q1(5),q1(6));
 dMdx(5,:) = out_t*dM_dx5(q1(2),q1(3),q1(4),q1(5),q1(6));
 dMdx(6,:) = out_t*dM_dx6(q1(2),q1(3),q1(4),q1(5),q1(6));
+
+
 
 grad_t =(dTaudx-dVdx-dGdx-dMdx-dBeta1_dx-dMext_dx-(dTaudx-dGdx)*M_ext.'*beta1.')/M; %we already add sigma term in grad_t
 

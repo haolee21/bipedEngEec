@@ -4,9 +4,9 @@ function [c,ceq,gradc,gradceq] = five_link_nonlcon(x,p)
 [c1,gradc1]=yposCon(x,p);
 [c2,gradc2]=headPosCon(x,p);
 [c3,gradc3]=ankPosCon(x,p);
-
-c = [c1;c2;c3];
-gradc=[gradc1,gradc2,gradc3];
+[c4,gradc4]=toe_heel(x,p);
+c = [c1;c2;c3;c4];
+gradc=[gradc1,gradc2,gradc3,gradc4];
 
 [ceq1,gradceq1]=dynConst(x,p);
 

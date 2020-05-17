@@ -33,9 +33,9 @@ for frame=1:size(sol,2)
     P4 = P(1:2,4);
     P5 = P(1:2,5);
     P6 = P(1:2,6);
-    
-    x = [0,P1(1),P2(1),P3(1),P4(1),P5(1),P6(1)];
-    y = [0,P1(2),P2(2),P3(2),P4(2),P5(2),P6(2)];
+    P7 = P(1:2,7);
+    x = [0,P1(1),P2(1),P3(1),P4(1),P5(1),P7(1),P6(1)]; % P7 is heel, P6 is toe
+    y = [0,P1(2),P2(2),P3(2),P4(2),P5(2),P7(2),P6(2)];
     
     G1 = P(4:5,1);
     G2 = P(4:5,2);
@@ -54,9 +54,9 @@ for frame=1:size(sol,2)
         
         
      else
-        M_ext = Mext_ank(sol(:,frame).');
-        sigma = sigma_ank(sol(1:p.numJ,frame).',p.toe_th);
-        fext_loc = P5;
+        M_ext = Mext_heel(sol(:,frame).');
+        sigma = sigma_heel(sol(1:p.numJ,frame).',p.toe_th);
+        fext_loc = P7;
   
     end
     fext = sigma*M_ext*(G.'-sol(p.numJ*2+1:p.numJ*3,frame))/500; %divide 500 is just for ploting 
@@ -84,14 +84,14 @@ for frame=1:size(sol,2)
     hold off;
     clf(fig);
     % Plot the ground:
-    plot(xBnd,[0,0],'LineWidth',6,'Color',colorGround);
+    plot(xBnd,[p.toe_th,p.toe_th],'LineWidth',6,'Color',colorGround);
     
     hold on;
     
     % Plot the links:
     plot(x(1:3),y(1:3),'LineWidth',4,'Color',colorStance);
     plot(x(3:4),y(3:4),'LineWidth',4,'Color',colorTorso);
-    plot(x([3,5,6,7]),y([3,5,6,7]),'LineWidth',4,'Color',colorSwing);
+    plot(x([3,5,6,7,8]),y([3,5,6,7,8]),'LineWidth',4,'Color',colorSwing);
     
     % Plot the joints:
     plot(0, 0,'k.','MarkerSize',30);
