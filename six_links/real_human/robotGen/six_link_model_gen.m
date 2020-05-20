@@ -168,7 +168,7 @@ thigh_front =turnRTtoMatrix(robot.A([1,2],[q1,q2]))*[lc_thigh1,0,0,1].';
 torso = turnRTtoMatrix(robot.A([1,2,3],[q1,q2,q3]))*[lc_torso,0,0,1].';
 thigh_back = turnRTtoMatrix(robot.A([1,2,3,4],[q1,q2,q3,q4]))*[lc_thigh2,0,0,1].';
 calf_back = turnRTtoMatrix(robot.A([1,2,3,4,5],[q1,q2,q3,q4,q5]))*[lc_calf2,0,0,1].';
-foot_back = turnRTtoMatrix(robot.A([1,2,3,4,5,6],[q1,q2,q3,q4,q5,q6]))*[lc_foot,0,0,1].';
+foot_back = turnRTtoMatrix(robot.A([1,2,3,4,5,6],[q1,q2,q3,q4,q5,q6]))*[lc_foot,l_heel,0,1].';
 
 draw_pos = [knee_front,hip_front,head,knee_back,ankle_back,toe_back,heel_back;...
             calf_front,thigh_front,torso,thigh_back,calf_back,foot_back,zeros(4,1)]; %2 points to draw for the feet (toe and heel)
@@ -181,45 +181,52 @@ matlabFunction(draw_pos,'file','getRobotPos','vars',[q1,q2,q3,q4,q5,q6]);
 dyn = dynGen(robot,end_eff);
 % 
 % 
-% matlabFunction(dyn.M,'File','dyn/six_M','vars',[q2,q3,q4,q5,q6]);
-% matlabFunction(dyn.G,'File','dyn/six_G','vars',[q1 q2 q3 q4 q5 q6]);
-% matlabFunction(dyn.J,'File','dyn/six_J','vars',[q1 q2 q3 q4 q5 q6]);
-% matlabFunction(dyn.V,'File','dyn/six_V','vars',[q2 q3 q4 q5 q6 qd1 qd2 qd3 qd4 qd5 qd6]);
+tasks = cell(1,5);
+tasks{1,1}=@()matlabFunction(dyn.M,'File','dyn/six_M','vars',[q2,q3,q4,q5,q6]);
+tasks{1,2}=@()matlabFunction(dyn.G,'File','dyn/six_G','vars',[q1 q2 q3 q4 q5 q6]);
+tasks{1,3}=@()matlabFunction(dyn.J,'File','dyn/six_J','vars',[q1 q2 q3 q4 q5 q6]);
+tasks{1,4}=@()matlabFunction(dyn.V,'File','dyn/six_V','vars',[q2 q3 q4 q5 q6 qd1 qd2 qd3 qd4 qd5 qd6]);
+tasks{1,5}=@()matlabFunction(dyn.J2,'file','dyn/six_J2','vars',[q1,q2,q3,q4,q5,q6]);
 % 
 % 
 % %% generate gradient for the M,G,J,V
-% G=dyn.G;
-% M=dyn.M;
-% V=dyn.V;
-% J=dyn.J;
-% J2 = dyn.J2; %jacobian on heel
-% 
-% dG_dx = [diff(G,q1);diff(G,q2);diff(G,q3);diff(G,q4);diff(G,q5);diff(G,q6);zeros(2*numJ,numJ)];
-% 
-% matlabFunction(dG_dx,'file','grad/dG_dx','vars',[q1,q2,q3,q4,q5,q6]);       
-% 
-% 
-% 
-% dV_dx = [diff(V,q1);diff(V,q2);diff(V,q3);diff(V,q4);diff(V,q5);diff(V,q6);diff(V,qd1);diff(V,qd2);diff(V,qd3);diff(V,qd4);diff(V,qd5);diff(V,qd6);zeros(numJ,numJ)];
-% 
-% matlabFunction(dV_dx,'file','grad/dV_dx','vars',[qd1,qd2,qd3,qd4,qd5,qd6,q2,q3,q4,q5,q6]);
-% 
-% 
-% dM_dx2 = vpa(diff(M,q2),5);
-% dM_dx3 = vpa(diff(M,q3),5);
-% dM_dx4 = vpa(diff(M,q4),5);
-% dM_dx5 = vpa(diff(M,q5),5);
-% dM_dx6 = vpa(diff(M,q6),5);
-% matlabFunction(dM_dx2,'file','grad/dM_dx2','vars',[q2,q3,q4,q5,q6]);
-% matlabFunction(dM_dx3,'file','grad/dM_dx3','vars',[q2,q3,q4,q5,q6]);
-% matlabFunction(dM_dx4,'file','grad/dM_dx4','vars',[q2,q3,q4,q5,q6]);
-% matlabFunction(dM_dx5,'file','grad/dM_dx5','vars',[q2,q3,q4,q5,q6]);
-% matlabFunction(dM_dx6,'file','grad/dM_dx6','vars',[q2,q3,q4,q5,q6]);        
+G=dyn.G;
+M=dyn.M;
+V=dyn.V;
+J=dyn.J;
+J2 = dyn.J2; %jacobian on heel
+
+dG_dx = [diff(G,q1);diff(G,q2);diff(G,q3);diff(G,q4);diff(G,q5);diff(G,q6);zeros(2*numJ,numJ)];
+
+tasks{1,6}=@()matlabFunction(dG_dx,'file','grad/dG_dx','vars',[q1,q2,q3,q4,q5,q6]);       
 
 
+
+dV_dx = [diff(V,q1);diff(V,q2);diff(V,q3);diff(V,q4);diff(V,q5);diff(V,q6);diff(V,qd1);diff(V,qd2);diff(V,qd3);diff(V,qd4);diff(V,qd5);diff(V,qd6);zeros(numJ,numJ)];
+
+tasks{1,7}=@()matlabFunction(dV_dx,'file','grad/dV_dx','vars',[qd1,qd2,qd3,qd4,qd5,qd6,q2,q3,q4,q5,q6]);
+
+
+dM_dx2 = diff(M,q2);
+dM_dx3 = diff(M,q3);
+dM_dx4 = diff(M,q4);
+dM_dx5 = diff(M,q5);
+dM_dx6 = diff(M,q6);
+tasks{1,8}=@()matlabFunction(dM_dx2,'file','grad/dM_dx2','vars',[q2,q3,q4,q5,q6]);
+tasks{1,9}=@()matlabFunction(dM_dx3,'file','grad/dM_dx3','vars',[q2,q3,q4,q5,q6]);
+tasks{1,10}=@()matlabFunction(dM_dx4,'file','grad/dM_dx4','vars',[q2,q3,q4,q5,q6]);
+tasks{1,11}=@()matlabFunction(dM_dx5,'file','grad/dM_dx5','vars',[q2,q3,q4,q5,q6]);
+tasks{1,12}=@()matlabFunction(dM_dx6,'file','grad/dM_dx6','vars',[q2,q3,q4,q5,q6]);        
+
+parfor i=1:length(tasks)
+    tasks{1,i}();
+end
 %% generate the beta function for GRF
 
 % f_ext on toe
+% J = dyn.J;
+% J2 =dyn.J2;
+
 J_f_toe = J(1:2,:).';
 
 tasks = cell(1,32);
