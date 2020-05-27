@@ -58,18 +58,18 @@ else
 end
 
 
-M_ext = Mext(q1(1:numJ));
+M_ext = p.floor_stiff*Mext(q1(1:numJ));
 beta1 = beta_grf(q1(1:numJ));
 
 % calculate dMext_dx first since later we need to mod the value based on
 % extF
 
-dMextdx1 = dMext_dx1(q1(1:numJ));
-dMextdx2 = dMext_dx2(q1(1:numJ));
-dMextdx3 = dMext_dx3(q1(1:numJ));
-dMextdx4 = dMext_dx4(q1(1:numJ));
-dMextdx5 = dMext_dx5(q1(1:numJ));
-dMextdx6 = dMext_dx6(q1(1:numJ));
+dMextdx1 = p.floor_stiff*dMext_dx1(q1(1:numJ));
+dMextdx2 = p.floor_stiff*dMext_dx2(q1(1:numJ));
+dMextdx3 = p.floor_stiff*dMext_dx3(q1(1:numJ));
+dMextdx4 = p.floor_stiff*dMext_dx4(q1(1:numJ));
+dMextdx5 = p.floor_stiff*dMext_dx5(q1(1:numJ));
+dMextdx6 = p.floor_stiff*dMext_dx6(q1(1:numJ));
 
 
 extF = M_ext*(u1-G1).';
@@ -163,5 +163,20 @@ dMdx(6,:) = out_t*dM_dx6(q1(2),q1(3),q1(4),q1(5),q1(6));
 
 grad_t =(dTaudx-dVdx-dGdx-dMdx-dBeta1_dx-dMext_dx-(dTaudx-dGdx)*M_ext.'*beta1.')/M; %we already add sigma term in grad_t
 
+
+%% add stiffness to the knee
+% when q2<0.5 deg, spring activate
+% when q5<0.5 deg, spring activate
+out_t(1,2)=out_t(1,2)+sigma_knee(q1(2))*p.knee_stiff*(q1(2)-0.0087); %0.0087 = 0.5 deg
+out_t(1,5)=out_t(1,5)+sigma_knee(q1(5))*p.knee_stiff*(q1(5)-0.0087);
+grad_t(2,2) = grad_t(2,2)+dsigma_knee(q1(2))*p.knee_stiff*(q1(2)-0.0087)+sigma_knee(q1(2))*p.knee_stiff;
+grad_t(5,5) = grad_t(5,5)+dsigma_knee(q1(5))*p.knee_stiff*(q1(5)-0.0087)+sigma_knee(q1(5))*p.knee_stiff;
+
+%% add ankle tendon
+out_t(1,1)=out_t(1,1)-p.ank_stiff*(q1(1)-1.5708);
+out_t(1,6)=out_t(1,6)-p.ank_stiff*(q1(6)+1.5708);
+
+grad_t(1,1)=grad_t(1,1)-p.ank_stiff;
+grad_t(6,6)=grad_t(6,6)-p.ank_stiff;
 
 end

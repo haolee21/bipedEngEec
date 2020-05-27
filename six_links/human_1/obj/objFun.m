@@ -38,7 +38,7 @@ for i=1:p.numJ
     ucount(i,:)=count.*u(i,:);
     dObj = p.jointW(i)*0.5*sum(ucount(i,:).^2,'all')+dObj;
 end
-dObj = dObj+0.5*sum(q(2,:).^2,'all')+0.5*sum(q(5,:).^2,'all');
+% dObj = dObj+0.5*sum(q(2,:).^2,'all')+0.5*sum(q(5,:).^2,'all');
 
 %% however, knee joint can lock itself if it reaches 0 degree
 % front knee, 0 -> -180 deg
@@ -48,7 +48,7 @@ dObj = dObj+0.5*sum(q(2,:).^2,'all')+0.5*sum(q(5,:).^2,'all');
 
 
 dObjGrad = [zeros(p.numJ*2,size(x,2));diag(p.jointW)*ucount];
-dObjGrad(2,:) = q(2,:);
-dObjGrad(5,:) = q(5,:);
+% dObjGrad(2,:) = q(2,:);
+% dObjGrad(5,:) = q(5,:);
 dObjGrad = dObjGrad+fri_grad*p.fri_coeff;
 end

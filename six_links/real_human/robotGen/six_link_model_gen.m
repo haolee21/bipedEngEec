@@ -349,6 +349,22 @@ fri2_dx = [diff(fri2,q1);
 tasks{1,31}=@()matlabFunction(fri2,'file','obj/fri_heel','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th});
 tasks{1,32}=@()matlabFunction(fri2_dx,'file','obj/fri_heel_dx','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th});
 
+
+
+
+%% front/back knee locking
+% we will add a torsional spring at the front knee
+% it is triggered when q2<1 deg
+
+sigma_knee = 0.5*tanh(250*(0.5/180*pi-q2))+0.5;
+dsigma_knee = diff(sigma_knee,q2);
+
+task{1,33}=@()matlabFunction(sigma_knee,'file','knee_spring/sigma_knee','vars',q2);
+task{1,34}=@()matlabFunction(dsigma_knee,'file','knee_spring/dsigma_knee','vars',q2);
+
+
+
+
 parfor i=1:length(tasks)
     tasks{1,i}();
 end

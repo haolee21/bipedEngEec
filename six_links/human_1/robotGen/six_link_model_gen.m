@@ -1,17 +1,20 @@
 %%% This script will generate a 2-d biped model
 %   the model has 5 segments, calf, thigh, and torso
 %%% 
+
+%% This is a male model, height 180 cm, body weight 72 kg
+% percentage is from de Leva (1996), table 4
 clear;
 
 addpath ../
 
 numJ = 6;
 totH=1.8; %total height % still not add up to 100%, but these are just numbers
-l_foot = 0.014825*totH; %use de Leva number to get the percentage 
-l_calf = 0.247*totH; %from Plagenhoef
-l_thigh =0.232*totH;
-l_torso = 0.4075*totH; %head + torso, will have to adjust lc_torso later
-l_heel = 0.0425*totH;
+l_foot = 0.1476*totH; %use de Leva number to get the percentage 
+l_calf = 0.2514*totH; %from Plagenhoef
+l_thigh =0.24334*totH;
+l_torso = 0.4223*totH; %head + torso, will have to adjust lc_torso later
+l_heel = 0.0425*totH;  %from Rudolfs Drillis (1964) Table.1, G
 DH = [0, 0, 0, 0, 0, 0;...
       0, l_calf, 0, 0, 0, 0;...
       0, l_thigh, 0, 0, 0, 0;...
@@ -22,24 +25,28 @@ robot=DH2Robot(DH,1);
 robot.gravity=[0,9.81,0];
 
 
-
 %kg
 totM = 75;
-m_foot = 0.0143*totM;
-m_calf =0.0478*totM;
-m_thight = 0.105*totM;
-m_head = 0.0826*totM;
-m_trunk = 0.551*totM;
+m_foot = 0.0137*totM;
+m_calf =0.0433*totM;
+m_thight = 0.1416*totM;
+m_head = 0.0694*totM;
+m_trunk = 0.4346*totM;
 m_torso = m_trunk+m_head; %this total mass is not 100% though
 
+model.totM = totM;
+model.l_heel = l_heel;
+model.l_foot = l_foot;
+save('model','model');
 %CoM pos
-lc_calf1 = (1-0.433)*l_calf;
-lc_thigh1 = (1-0.433)*l_thigh;
 lc_thigh2 = 0.433*l_thigh;
 lc_calf2 = 0.433*l_calf;
-lc_foot = 0.5*l_foot;
+lc_calf1 = l_calf-lc_calf2;
+lc_thigh1 = l_thigh-lc_thigh2;
+
+lc_foot = 0.4415*l_foot; % de Leva 
 % include head when calculating, suppose neck is fixed
-lc_torso = ((1-0.63)*l_torso*m_torso+(0.1075*totH*0.5+l_torso)*m_head)/(m_head+m_trunk); 
+lc_torso = (0.4486*l_torso*m_torso+(0.1166*totH*(1-0.5976)+l_torso)*m_head)/(m_head+m_trunk); 
 
 
 
@@ -190,7 +197,7 @@ matlabFunction(draw_pos,'file','getRobotPos','vars',[q1,q2,q3,q4,q5,q6]);
 dyn = dynGen(robot,end_eff);
 % 
 % 
-tasks = cell(1,5);
+tasks = cell(1,34);
 tasks{1,1}=@()matlabFunction(dyn.M,'File','dyn/six_M','vars',[q2,q3,q4,q5,q6]);
 tasks{1,2}=@()matlabFunction(dyn.G,'File','dyn/six_G','vars',[q1 q2 q3 q4 q5 q6]);
 tasks{1,3}=@()matlabFunction(dyn.J,'File','dyn/six_J','vars',[q1 q2 q3 q4 q5 q6]);
@@ -357,6 +364,18 @@ fri2_dx = [diff(fri2,q1);
           zeros(numJ,1)];
 tasks{1,31}=@()matlabFunction(fri2,'file','obj/fri_heel','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th});
 tasks{1,32}=@()matlabFunction(fri2_dx,'file','obj/fri_heel_dx','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th});
+
+
+%% front/back knee locking
+% we will add a torsional spring at the front knee
+% it is triggered when q2<1 deg
+
+sigma_knee = 0.5*tanh(250*(0.5/180*pi-q2))+0.5;
+dsigma_knee = diff(sigma_knee,q2);
+
+task{1,33}=@()matlabFunction(sigma_knee,'file','knee_spring/sigma_knee','vars',q2);
+task{1,34}=@()matlabFunction(dsigma_knee,'file','knee_spring/dsigma_knee','vars',q2);
+
 
 parfor i=1:length(tasks)
     tasks{1,i}();

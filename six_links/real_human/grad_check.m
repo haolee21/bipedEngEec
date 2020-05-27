@@ -14,22 +14,24 @@ addpath obj/
 addpath gaitCon/
 addpath plotRobot/
 addpath robotGen/grf/
+addpath robotGen/knee_spring/
 %% simulation parameter
 
 param.numJ=6;
 numJ = param.numJ;
 param.numJ=6;
 param.toe_th = 5e-4;
-param.head_h = 1.2 ; %the head should be at least 1.6m
+param.head_h = 1.1 ; %the head should be at least 1.6m
 
 param.gaitT = 0.5;
 param.sampT = 0.001;
 param.init_y = 1e-3; %initial feet height
 param.gaitLen = 1.8;
-param.hipLen=0.7;
+param.hipLen=0.67;
 param.jointW=[1,2,1,1,1,1];
 param.gndclear = 5e-2;
 param.fri_coeff=5;
+param.knee_stiff=100;
 time = 0:param.sampT:param.gaitT;
 
 % set torque/angular velocity constraints
@@ -43,7 +45,7 @@ qmax = 170/180/pi;
 
 % add some noise to the states
 q = [pi/2*ones(1,length(time))+randn(1,length(time))*0.0001*pi/2;
-     -pi/2*ones(1,length(time))+randn(1,length(time))*0.0001*pi/2;
+     0/2*ones(1,length(time))+randn(1,length(time))*0.0001*pi/2;
      zeros(1,length(time))+randn(1,length(time))*0.0001*pi/2;
      -pi*ones(1,length(time))+randn(1,length(time))*0.0001*pi/2;
      pi/2*ones(1,length(time))+randn(1,length(time))*0.0001*pi/2;
