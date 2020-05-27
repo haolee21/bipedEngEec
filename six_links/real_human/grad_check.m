@@ -14,22 +14,24 @@ addpath obj/
 addpath gaitCon/
 addpath plotRobot/
 addpath robotGen/grf/
+addpath robotGen/knee_spring/
 %% simulation parameter
 
 param.numJ=6;
 numJ = param.numJ;
 param.numJ=6;
 param.toe_th = 5e-4;
-param.head_h = 1.2 ; %the head should be at least 1.6m
+param.head_h = 1.1 ; %the head should be at least 1.6m
 
 param.gaitT = 0.5;
 param.sampT = 0.001;
 param.init_y = 1e-3; %initial feet height
 param.gaitLen = 1.8;
-param.hipLen=0.7;
+param.hipLen=0.67;
 param.jointW=[1,2,1,1,1,1];
 param.gndclear = 5e-2;
 param.fri_coeff=5;
+param.knee_stiff=100;
 time = 0:param.sampT:param.gaitT;
 
 % set torque/angular velocity constraints
@@ -42,16 +44,16 @@ qmax = 170/180/pi;
 
 
 % add some noise to the states
-q = [pi/2*ones(1,length(time))+randn(1,length(time))*0.01*pi/2;
-     -pi/2*ones(1,length(time))+randn(1,length(time))*0.01*pi/2;
-     zeros(1,length(time))+randn(1,length(time))*0.01*pi/2;
-     -pi*ones(1,length(time))+randn(1,length(time))*0.01*pi/2;
-     pi/2*ones(1,length(time))+randn(1,length(time))*0.01*pi/2;
-     pi/2*ones(1,length(time))+randn(1,length(time))*0.01*pi/2];
-dq = zeros(param.numJ,length(time))+randn(param.numJ,length(time))*0.1*pi/2;
+q = [pi/2*ones(1,length(time))+randn(1,length(time))*0.0001*pi/2;
+     0/2*ones(1,length(time))+randn(1,length(time))*0.0001*pi/2;
+     zeros(1,length(time))+randn(1,length(time))*0.0001*pi/2;
+     -pi*ones(1,length(time))+randn(1,length(time))*0.0001*pi/2;
+     pi/2*ones(1,length(time))+randn(1,length(time))*0.0001*pi/2;
+     pi/2*ones(1,length(time))+randn(1,length(time))*0.0001*pi/2];
+dq = zeros(param.numJ,length(time))+randn(param.numJ,length(time))*0.01*pi/2;
 
 
-u = zeros(param.numJ,length(q))+randn(param.numJ,length(q))*0.1*pi/2;
+u = zeros(param.numJ,length(q))+randn(param.numJ,length(q))*0.01*pi/2;
 
 ext_tau = zeros(size(time,2),param.numJ);
 
@@ -65,12 +67,12 @@ dx = reshape(x2-x1,[size(x1,1)*size(x1,2),1]);
 
 
 %% check gaitLenCon
-[c1,grad1] = gaitLenCon(x1,param);
-[c2,grad2]=gaitLenCon(x2,param);
+[c1,grad1] = hipCon(x1,param);
+[c2,grad2]=hipCon(x2,param);
 
 err = c2-c1-0.5*(grad1+grad2).'*dx;
 
-disp(['gait len gradient err:',string(norm(err)/norm(c2-c1))]);
+disp(['hip len gradient err:',string(norm(err)/norm(c2-c1))]);
 
 clear c1 grad1 c2 grad2
 
@@ -111,6 +113,10 @@ grad_G1 = dG_dx(x1_row(1),x1_row(2),x1_row(3),x1_row(4),x1_row(5),x1_row(6));
 grad_G2 = dG_dx(x2_row(1),x2_row(2),x2_row(3),x2_row(4),x2_row(5),x1_row(6));
 err = diff_G.' - 0.5*(grad_G1+grad_G2).'*dx_row.';
 disp(['dG_dx gradient err:',string(gather(norm(err)/norm(diff_G)))]);
+
+
+
+
 
 % M is a tensor, it is a bit hard to check, we check the overall betaFun
 % directly
