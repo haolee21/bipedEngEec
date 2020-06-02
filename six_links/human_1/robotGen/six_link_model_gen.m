@@ -370,11 +370,17 @@ tasks{1,32}=@()matlabFunction(fri2_dx,'file','obj/fri_heel_dx','vars',{[q1,q2,q3
 % we will add a torsional spring at the front knee
 % it is triggered when q2<1 deg
 
-sigma_knee = 0.5*tanh(250*(0.5/180*pi-q2))+0.5;
-dsigma_knee = diff(sigma_knee,q2);
+syms kne_stop ank_stop real qkne qank;
+sigma_knee = 0.5*tanh(250*(kne_stop-qkne))+0.5;
+dsigma_knee = diff(sigma_knee,qkne);
+sigma_ank = 0.5*tanh(250*(ank_stop-qank))+0.5;
+dsigma_ank = diff(sigma_ank,qank);
 
-task{1,33}=@()matlabFunction(sigma_knee,'file','knee_spring/sigma_knee','vars',q2);
-task{1,34}=@()matlabFunction(dsigma_knee,'file','knee_spring/dsigma_knee','vars',q2);
+task{1,33}=@()matlabFunction(sigma_knee,'file','knee_spring/sigma_knee','vars',[qkne,kne_stop]);
+task{1,34}=@()matlabFunction(dsigma_knee,'file','knee_spring/dsigma_knee','vars',[qkne,kne_stop]);
+task{1,35}=@()matlabFunction(sigma_ank,'file','knee_spring/sigma_ank','vars',[qank,ank_stop]);
+task{1,36}=@()matlabFunction(dsigma_ank,'file','knee_spring/dsigma_ank','vars',[qank,ank_stop]);
+
 
 
 parfor i=1:length(tasks)
