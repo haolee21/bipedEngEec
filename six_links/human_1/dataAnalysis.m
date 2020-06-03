@@ -4,7 +4,7 @@ addpath robotGen/
 close all;
 %%
 
-data1 = load('06020109.mat').result;
+data1 = load('06021558.mat').result;
 numJ = data1.param.numJ;
 u1 = data1.x(numJ*2+1:numJ*3,:);
 eng1 = sum(u1.^2,'all');
