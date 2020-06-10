@@ -12,7 +12,7 @@ addpath robotGen/knee_spring
 
 %% data analyzing 
 close all;
-data1 = load('05301344.mat').result;
+data1 = load('06090244.mat').result;
 
 % data3 = load('05041233.mat').result;
 % data4 = load('05041325.mat').result;
@@ -31,25 +31,25 @@ eng1_no_ank = sum(u1_no_ank.^2,'all');
 time = 0:data1.param.sampT:data1.param.gaitT;
 
 % find heel strike point
-strike_time =[0,0];
-toe_strike = zeros(1,length(time));
-heel_strike = zeros(1,length(time));
-for i=1:floor(size(data1.x,2)/2)
-    curX = data1.x(:,i);
-    grf_toe =sigma_toe(curX.',data1.param.toe_th);
-    if(grf_toe>0.001)
-        toe_strike(i)=1;
-    end
-end
-for i=floor(size(data1.x,2)/2):size(data1.x,2)
-    curX = data1.x(:,i);
-    grf_heel = sigma_heel(curX.',data1.param.toe_th);
-    if(grf_heel>0.001)
-        heel_strike(i)=1;
-    end
-end
-
-heel_s_idx = find(heel_strike);
+% strike_time =[0,0];
+% toe_strike = zeros(1,length(time));
+% heel_strike = zeros(1,length(time));
+% for i=1:floor(size(data1.x,2)/2)
+%     curX = data1.x(:,i);
+%     grf_toe =sigma_toe(curX.',data1.param.toe_th);
+%     if(grf_toe>0.001)
+%         toe_strike(i)=1;
+%     end
+% end
+% for i=floor(size(data1.x,2)/2):size(data1.x,2)
+%     curX = data1.x(:,i);
+%     grf_heel = sigma_heel(curX.',data1.param.toe_th);
+%     if(grf_heel>0.001)
+%         heel_strike(i)=1;
+%     end
+% end
+% 
+% heel_s_idx = find(heel_strike);
 
 
 figure(2);
@@ -92,7 +92,7 @@ plot(gait_duty,comb);
 xlabel('Gait(%)');
 ylabel('Angle(deg)');
 title('Knee');
-ylim([-90,40]);
+
 
 figure(6);
 comb_ank = [data1.x(1,1:end-1),-data1.x(6,:)]*180/pi-110;
@@ -102,7 +102,7 @@ ylabel('Angle(deg)');
 title('Ankle');
 ylim([-90,40]);
 figure(7);
-comb_hip = [data1.x(3,1:end-1),-data1.x(4,:)-pi]*180/pi-80;
+comb_hip = [-data1.x(3,1:end-1),+data1.x(4,:)+pi]*180/pi;
 plot(gait_duty,comb_hip);
 xlabel('Gait(%)');
 ylabel('Angle(deg)');

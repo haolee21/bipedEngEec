@@ -6,17 +6,12 @@ u = x(p.numJ*2+1:3*p.numJ,:);
 fri_sum=0;
 fri_grad = zeros(size(x,1),size(x,2));
 
-half_idx = floor(size(x,2)/2);
-for i=1:half_idx
-    fri_sum = fri_sum + fri_toe([q(:,i);dq(:,i)].',p.toe_th);
-    fri_grad(:,i) = fri_toe_dx([q(:,i);dq(:,i)].',p.toe_th);
+
+for i=1:size(x,2)
+    fri_sum = fri_sum + fri_toe([q(:,i);dq(:,i)].',p.toe_th)+fri_heel([q(:,i);dq(:,i)].',p.toe_th);
+    fri_grad(:,i) = fri_toe_dx([q(:,i);dq(:,i)].',p.toe_th)+fri_heel_dx([q(:,i);dq(:,i)].',p.toe_th);
 end
-for i = half_idx+1:size(x,2)
-    
-    fri_sum = fri_sum + fri_heel([q(:,i);dq(:,i)].',p.toe_th);
-    fri_grad(:,i) = fri_heel_dx([q(:,i);dq(:,i)].',p.toe_th);
-    
-end
+
 
 
 dObj = fri_sum*p.fri_coeff;

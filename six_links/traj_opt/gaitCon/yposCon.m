@@ -1,7 +1,7 @@
 function [c,gradc] = yposCon(x,p)
 
-start_i = floor(size(x,2)*0.3);
-end_i = floor(size(x,2)*0.7);
+start_i = floor(size(x,2)*0.4);
+end_i = floor(size(x,2)*0.6);
 c = -ones(1,end_i-start_i+1);
 % c = gpuArray(c);
 gradc = zeros(size(x,1),size(x,2),size(c,2));

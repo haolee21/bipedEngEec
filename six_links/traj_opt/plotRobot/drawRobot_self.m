@@ -21,12 +21,8 @@ startHip = -100;
 %%
 for frame=1:size(sol,2)
     P = getRobotPos(sol(1,frame),sol(2,frame),sol(3,frame),sol(4,frame),sol(5,frame),sol(6,frame));
-   
-    G = six_G(sol(1,frame),sol(2,frame),sol(3,frame),sol(4,frame),sol(5,frame),sol(6,frame));
+ 
     
-   
-%     x = [0; P(1:2:end,frame)];
-%     y = [0; P(2:2:end,frame)];
     P1 = P(1:2,1);
     P2 = P(1:2,2);
     P3 = P(1:2,3);
@@ -47,26 +43,16 @@ for frame=1:size(sol,2)
     com_x =( G1(1)*m_calf+G2(1)*m_thigh+G3(1)*m_torso+G4(1)*m_thigh+G5(1)*m_calf+G6(1)*m_foot)/m_tot;
     
     %plot grf
-     if(frame<floor(p.gaitT/p.sampT/2))
-        M_ext = Mext_toe(sol(:,frame).');
-        sigma = sigma_toe(sol(1:p.numJ,frame).',p.toe_th);
-        fext_loc = P6;
+    fext_toe_loc=P6;
+    [~,~,Fn_toe,Fs_toe]=toe_grf(sol(:,frame).',p);
+    
+    % force act on the heel
+    fext_heel_loc=P7;
+    [~,~,Fn_heel,Fs_heel]=heel_grf(sol(:,frame).',p);
         
-        
-     else
-        M_ext = Mext_heel(sol(:,frame).');
-        sigma = sigma_heel(sol(1:p.numJ,frame).',p.toe_th);
-        fext_loc = P7;
-  
-    end
-    fext = sigma*M_ext*(G.'-sol(p.numJ*2+1:p.numJ*3,frame))/500; %divide 500 is just for ploting 
     
-    
-    if(fext(2)<0)
-        fext = zeros(2,1);
-    end
-    
-    
+    fext_toe = [Fs_toe,Fn_toe]/m_tot;
+    fext_heel = [Fs_heel,Fn_heel]/m_tot;
     
     % Heuristics:
     L = 2;  % Maximum extended leg length
@@ -112,7 +98,8 @@ for frame=1:size(sol,2)
     
     plot(com_x,0,'go','MarkerSize',8,'LineWidth',2);
     
-    quiver(fext_loc(1),fext_loc(2),fext(1),fext(2),'color',[0.2,1,0],'LineStyle','--','LineWidth',2);
+    quiver(fext_heel_loc(1),fext_heel_loc(2),fext_heel(1),fext_heel(2),'color',[0.2,1,0],'LineStyle','--','LineWidth',2);
+    quiver(fext_toe_loc(1),fext_toe_loc(2),fext_toe(1),fext_toe(2),'color',[0.2,1,0],'LineStyle','--','LineWidth',2);
     yline(p.toe_th,'-','Toe Height');
     yline(p.head_h,'-','Head Height');
     if(startHip<-50)
