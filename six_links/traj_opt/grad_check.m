@@ -26,7 +26,7 @@ data = load('grad_check_data').result;
 %% simulation parameter
 param = data.param;
 x1 = data.x;
-amp = max(abs(x1),[],2)*0.0001;%use 0.1% of the max value of each row as amp
+amp = max(abs(x1),[],2)*0.00001;%use 0.1% of the max value of each row as amp
 x2 = x1+randn(size(x1,1),size(x1,2)).*amp;
 
 dx = reshape(x2-x1,[size(x1,1)*size(x1,2),1]);
@@ -130,6 +130,7 @@ disp(['dToe_ext avg gradient err:',string(err_sum/count)]);
 
 err_rate =0;
 err_sum =0;
+count = 0;
 for i=floor(data.param.gaitT/data.param.sampT/2)-1:size(x1,2)
     
     x1_row = x1(:,i).';
@@ -143,6 +144,7 @@ for i=floor(data.param.gaitT/data.param.sampT/2)-1:size(x1,2)
     err_rate_temp = norm(err)/norm(diff);
     if(~isnan(err_rate_temp))
         err_sum = err_sum+err_rate_temp;
+        count = count +1;
     end
     if(err_rate_temp>err_rate)
         err_rate = err_rate_temp;
@@ -150,7 +152,7 @@ for i=floor(data.param.gaitT/data.param.sampT/2)-1:size(x1,2)
     
 end
 disp(['dHeel_ext gradient err:',string(err_rate)]);
-disp(['avg dHeel_ext gradient err:', string(err_sum)]);
+disp(['avg dHeel_ext gradient err:', string(err_sum/count)]);
 
 
 %% check f_x
@@ -197,8 +199,8 @@ disp(['dyn gradient err:',string(gather(norm(err)/norm(c2-c1)))]);
 [c1,ceq1,gradc1,gradceq1] = five_link_nonlcon(x1,param);
 [c2,ceq2,gradc2,gradceq2] = five_link_nonlcon(x2,param);
 
-err_c = c2-c1-0.5*(gradc1+gradc2).'*dx;
-disp(['c gradient err:',string(gather(norm(err_c)/norm(c2-c1)))]);
+% err_c = c2-c1-0.5*(gradc1+gradc2).'*dx;
+% disp(['c gradient err:',string(gather(norm(err_c)/norm(c2-c1)))]);
 
 err_ceq = ceq2-ceq1 - 0.5*(gradceq1+gradceq2).'*dx;
 disp(['ceq gradient err:',string(gather(norm(err_ceq)/norm(ceq2-ceq1)))]);

@@ -17,7 +17,7 @@ gradc=[gradc1,gradc2];
 
 [ceq4,gradceq4]=hipCon(x,p);
 % [c,ceq1,gradc,gradceq1] = gather(c,ceq,gradc,gradceq);
-% [ceq5,gradceq5]=ext_const(x,p);
+[ceq5,gradceq5]=ext_const(x,p);
 ceq = [ceq1;ceq4];
 gradceq = [gradceq1,gradceq4];
 

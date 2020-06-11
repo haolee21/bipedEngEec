@@ -392,7 +392,7 @@ k = 2e6;
 ks = 2; %use ks to replace the spring constant e in the paper
 cmax = 0;
 
-dmax = 1e-2;
+dmax = 1e-3;
 us = 0.8;
 ud=0.8;
 
@@ -405,7 +405,7 @@ model.dmax = dmax;
 
 % toe
 
-sigma_Fn_toe = 0.5*tanh(400*(th-toe_y_pos))+0.5;
+sigma_Fn_toe = 0.5*tanh(400*(toe_y_pos-th))+0.5;
 
 toe_vel = J(1:2,:)*[qd1;qd2;qd3;qd4;qd5;qd6];
 y_vel_toe = toe_vel(2,1);

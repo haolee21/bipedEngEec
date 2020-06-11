@@ -131,7 +131,7 @@ prob.nonlcon = @(x)five_link_nonlcon(x,param);
 % the A matrix is define in the following way:
 %     [x(0),x(1),x(2).......x(end)], one condition, one row
 
-numCond = 13; %start-end pos conditions, velocity conditions
+numCond = 12; %start-end pos conditions, velocity conditions
 
 %start-end joint condition 
 %position
@@ -168,13 +168,11 @@ Aeq(param.numJ+param.numJ/2+1:param.numJ+param.numJ,end-3*param.numJ+1:end)=[0,0
                                                                              0,0,0,0,0,0,  0,0,0,0,0,0 ,0,0,0,1,0,0];     
                                                                          
                                                                          
-% initial feet must be flat
-Aeq(param.numJ*2+1,1:param.numJ*3)=[1,1,1,1,1,1,  0,0,0,0,0,0  ,0,0,0,0,0,0];
-                                     
+% 
                                                       
                                                       
 prob.Aeq = Aeq;
-prob.beq = [-pi;0;-pi;-pi;0;0;0;0;0;0;0;0;-pi];
+prob.beq = [-pi;0;-pi;-pi;0;0;0;0;0;0;0;0];
 
 % back never bend backward
 % -1*(q1+q2+q3) <-88 deg, 
