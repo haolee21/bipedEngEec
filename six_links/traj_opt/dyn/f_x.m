@@ -205,8 +205,8 @@ grad_t(2,2) = grad_t(2,2)+dsigma_knee(q1(2))*p.knee_stiff*(q1(2))+sigma_knee(q1(
 grad_t(5,5) = grad_t(5,5)+dsigma_knee(q1(5))*p.knee_stiff*(q1(5))+sigma_knee(q1(5))*p.knee_stiff;
 
 %% add ankle tendon
-out_t(1,1)=out_t(1,1)-p.ank_stiff*(q1(1)-1.5708);
-out_t(1,6)=out_t(1,6)-p.ank_stiff*(q1(6)+1.5708);
+out_t(1,1)=out_t(1,1)+p.ank_stiff*(pi/2-q1(1));
+out_t(1,6)=out_t(1,6)-p.ank_stiff*(3*pi/2+q1(6));
 
 grad_t(1,1)=grad_t(1,1)-p.ank_stiff;
 grad_t(6,6)=grad_t(6,6)-p.ank_stiff;

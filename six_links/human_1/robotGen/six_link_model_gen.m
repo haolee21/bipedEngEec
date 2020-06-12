@@ -388,9 +388,9 @@ task{1,36}=@()matlabFunction(dsigma_ank,'file','knee_spring/dsigma_ank','vars',[
 % since for grf we need x_vel, we generate it at last
 
 
-k = 1e5;
+k = 5e5;
 ks = 2; %use ks to replace the spring constant e in the paper
-cmax = 0;
+cmax = 1250;
 
 dmax = 1e-2;
 us = 0.8;
@@ -410,8 +410,8 @@ sigma_Fn_toe = 0.5*tanh(400*(th-toe_y_pos))+0.5;
 toe_vel = J(1:2,:)*[qd1;qd2;qd3;qd4;qd5;qd6];
 y_vel_toe = toe_vel(2,1);
 x_vel_toe = toe_vel(1,1);
-Fn_toe1 = sigma_Fn_toe*(k*(th-toe_y_pos)^ks-(th-toe_y_pos)/dmax*cmax*y_vel_toe);%y_vel_toe<0 when Fn>0
-Fn_toe2 = sigma_Fn_toe*(k*(th-toe_y_pos)^ks-cmax*y_vel_toe);
+Fn_toe1 = sigma_Fn_toe*(k*(th-toe_y_pos)^ks+(th-toe_y_pos)/dmax*cmax*y_vel_toe*(0.5*tanh(-y_vel_toe*100)+0.5));%y_vel_toe<0 when Fn>0
+Fn_toe2 = sigma_Fn_toe*(k*(th-toe_y_pos)^ks+cmax*y_vel_toe*(0.5*tanh(-y_vel_toe*100)+0.5));
 dFn_toe1 = [diff(Fn_toe1,q1);diff(Fn_toe1,q2);diff(Fn_toe1,q3);diff(Fn_toe1,q4);diff(Fn_toe1,q5);diff(Fn_toe1,q6);...
             diff(Fn_toe1,qd1);diff(Fn_toe1,qd2);diff(Fn_toe1,qd3);diff(Fn_toe1,qd4);diff(Fn_toe1,qd5);diff(Fn_toe1,qd6)];
 dFn_toe2 = [diff(Fn_toe2,q1);diff(Fn_toe2,q2);diff(Fn_toe2,q3);diff(Fn_toe2,q4);diff(Fn_toe2,q5);diff(Fn_toe2,q6);...
@@ -454,8 +454,8 @@ sigma_Fn_heel = 0.5*tanh(400*(th-heel_y_pos))+0.5;
 heel_vel = J(1:2,:)*[qd1;qd2;qd3;qd4;qd5;qd6];
 y_vel_heel = heel_vel(2,1);
 x_vel_heel = heel_vel(1,1);
-Fn_heel1 = sigma_Fn_heel*(k*(th-heel_y_pos)^ks-(th-heel_y_pos)/dmax*cmax*y_vel_heel);%y_vel_heel<0 when Fn>0
-Fn_heel2 = sigma_Fn_heel*(k*(th-heel_y_pos)^ks-cmax*y_vel_heel);
+Fn_heel1 = sigma_Fn_heel*(k*(th-heel_y_pos)^ks+(th-heel_y_pos)/dmax*cmax*y_vel_heel*(0.5*tanh(-y_vel_heel*100)+0.5));%y_vel_heel<0 when Fn>0
+Fn_heel2 = sigma_Fn_heel*(k*(th-heel_y_pos)^ks+cmax*y_vel_heel*(0.5*tanh(-y_vel_heel*100)+0.5));
 dFn_heel1 = [diff(Fn_heel1,q1);diff(Fn_heel1,q2);diff(Fn_heel1,q3);diff(Fn_heel1,q4);diff(Fn_heel1,q5);diff(Fn_heel1,q6);...
             diff(Fn_heel1,qd1);diff(Fn_heel1,qd2);diff(Fn_heel1,qd3);diff(Fn_heel1,qd4);diff(Fn_heel1,qd5);diff(Fn_heel1,qd6)];
 dFn_heel2 = [diff(Fn_heel2,q1);diff(Fn_heel2,q2);diff(Fn_heel2,q3);diff(Fn_heel2,q4);diff(Fn_heel2,q5);diff(Fn_heel2,q6);...

@@ -1,13 +1,13 @@
 function [c,ceq,gradc,gradceq] = five_link_nonlcon(x,p)
 
 % x = gpuArray(x);
-[c1,gradc1]=yposCon(x,p);
-[c2,gradc2]=heelPosCon(x,p);
+% [c1,gradc1]=yposCon(x,p);
+% [c2,gradc2]=heelPosCon(x,p);
 % [c2,gradc2]=headPosCon(x,p);
 % [c3,gradc3]=ankPosCon(x,p);
 % [c3,gradc3]=toe_heel(x,p);
-c = [c1;c2];
-gradc=[gradc1,gradc2];
+c = [];
+gradc=[];
 
 [ceq1,gradceq1]=dynConst(x,p);
 

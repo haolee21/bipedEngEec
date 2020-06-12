@@ -12,7 +12,7 @@ addpath robotGen/knee_spring
 
 %% data analyzing 
 close all;
-data1 = load('06090244.mat').result;
+data1 = load('06112224.mat').result;
 
 % data3 = load('05041233.mat').result;
 % data4 = load('05041325.mat').result;

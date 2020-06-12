@@ -21,7 +21,7 @@ addpath (['../',modelName,'/robotGen/knee_spring/'])
 %% simulation parameter
 model = load(['../',modelName,'/robotGen/model']).model;
 param.numJ=6;
-param.toe_th =-model.l_heel+0.01;
+param.toe_th =-model.l_heel+0.02;
 param.head_h = 1.1 ; %the head should be at least 1.6m
 param.fri_coeff=0;
 param.gaitT = 0.5;
@@ -32,23 +32,26 @@ param.foot_l = model.l_foot;
 param.dmax =model.dmax;
 
 
-param.hip_feet_ratio = 2;
+param.hip_feet_ratio = 2.3;
 param.hipLen=param.hip_feet_ratio*model.l_foot;
 param.gndclear = -model.l_heel+0.05;
-param.jointW = [1,1,1,1,1,1];
+param.jointW = [1,0.5,0.5,0.5,0.5,1];
 param.knee_stiff=0;
-param.ank_stiff=0;
+param.ank_stiff=408.65;
 
 time = 0:param.sampT:param.gaitT;
 param.floor_stiff=0.2;
 
 % set torque/angular velocity constraints
 
-param.max_vel =270/180*pi;
+
+param.max_ank_vel = 360/180*pi;
+param.max_kne_vel = 270/180*pi;
+param.max_hip_vel = 270/180*pi;
 
 
 
-param.mass =model.totM;
+param.mass =model.totM*2;
 % param.max_hip_tau =1*param.mass;
 % param.min_hip_tau = 0.8*param.mass;
 % param.max_kne_tau = 1.5*param.mass;
@@ -68,7 +71,7 @@ param.min_hip_tau = param.mass;
 param.max_kne_tau = param.mass;
 param.min_kne_tau =param.mass;
 param.max_ank_tau =param.mass;
-param.min_ank_tau= 0.1*param.mass;
+param.min_ank_tau= param.mass;
 %% initialize joint pos and torque
 
 % q = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi);
@@ -202,7 +205,12 @@ prob.ub = [179/180*pi*ones(1,size(x0,2));
            -91/180*pi*ones(1,size(x0,2));
            179/180*pi*ones(1,size(x0,2));
            -10/180*pi*ones(1,size(x0,2));
-           param.max_vel*ones(param.numJ,size(x0,2));
+           param.max_ank_vel*ones(1,size(x0,2));
+           param.max_kne_vel*ones(1,size(x0,2));
+           param.max_hip_vel*ones(1,size(x0,2));
+           param.max_hip_vel*ones(1,size(x0,2));
+           param.max_kne_vel*ones(1,size(x0,2));
+           param.max_ank_vel*ones(1,size(x0,2));
            param.min_ank_tau*ones(1,size(x0,2));
            param.max_kne_tau*ones(1,size(x0,2));
            param.max_hip_tau*ones(1,size(x0,2));
@@ -215,7 +223,12 @@ prob.lb = [ones(1,size(x0,2))/180*pi;
            -259/180*pi*ones(1,size(x0,2));
            -0*ones(1,size(x0,2))/180*pi;
            -125/180*pi*ones(1,size(x0,2));
-           -param.max_vel*ones(param.numJ,size(x0,2));
+           -param.max_ank_vel*ones(1,size(x0,2));
+           -param.max_kne_vel*ones(1,size(x0,2));
+           -param.max_hip_vel*ones(1,size(x0,2));
+           -param.max_hip_vel*ones(1,size(x0,2));
+           -param.max_kne_vel*ones(1,size(x0,2));
+           -param.max_ank_vel*ones(1,size(x0,2));
            -param.max_ank_tau*ones(1,size(x0,2));
            -param.min_kne_tau*ones(1,size(x0,2));
            -param.min_hip_tau*ones(1,size(x0,2));
@@ -254,6 +267,12 @@ prob.x0 = x0;
 %     
 %     
 % end
+
+% ms = MultiStart('FunctionTolerance',2e-4,'UseParallel',true);
+% gs = GlobalSearch(ms);
+% [x,fval,exitflag,output,solutions] =run(gs,prob);
+
+
 [x,fval,exitflag,output] = fmincon(prob);
     
 [t1,~]=clock;
