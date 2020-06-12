@@ -388,7 +388,7 @@ task{1,36}=@()matlabFunction(dsigma_ank,'file','knee_spring/dsigma_ank','vars',[
 % since for grf we need x_vel, we generate it at last
 
 
-k = 2e6;
+k = 1e5;
 ks = 2; %use ks to replace the spring constant e in the paper
 cmax = 0;
 

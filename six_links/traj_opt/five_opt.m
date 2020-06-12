@@ -35,7 +35,7 @@ param.dmax =model.dmax;
 param.hip_feet_ratio = 2;
 param.hipLen=param.hip_feet_ratio*model.l_foot;
 param.gndclear = -model.l_heel+0.05;
-param.jointW = [1,1,1,1,1,0.5];
+param.jointW = [1,1,1,1,1,1];
 param.knee_stiff=0;
 param.ank_stiff=0;
 
@@ -44,7 +44,7 @@ param.floor_stiff=0.2;
 
 % set torque/angular velocity constraints
 
-param.max_vel =180/180*pi;
+param.max_vel =270/180*pi;
 
 
 
@@ -79,21 +79,23 @@ param.min_ank_tau= 0.1*param.mass;
 % q4 = -180;
 % q5 =10;
 
-q1 = 89;
+q1 =50;
 q2 = -1;
-q3 =5;
-q4 = -180;
-q5 = 1;
+q3 =15;
+q4 = -95;
+q5 = 15;
 
-q6 = -180-q1-q2-q3-q4-q5;%+atan2d(param.heel_h,0.26);%0.26 is feet length
+q6 = -95;%+atan2d(param.heel_h,0.26);%0.26 is feet length
 
 qStart=[q1/180*pi,q2/180*pi,q3/180*pi,q4/180*pi,q5/180*pi,q6/180*pi];
-qEnd = [pi+qStart(1)+qStart(2)+qStart(3)+qStart(4)+qStart(5),...
-        -qStart(5),...
-        -qStart(4)-pi,...
-        -pi-qStart(3),...
-        -qStart(2),...
-        -qStart(1)];
+% qEnd = [pi+qStart(1)+qStart(2)+qStart(3)+qStart(4)+qStart(5),...
+%         -qStart(5),...
+%         -qStart(4)-pi,...
+%         -pi-qStart(3),...
+%         -qStart(2),...
+%         -qStart(1)];
+
+qEnd = [180-q1,q2,q3-90,q4-110,q5,q6]*pi/180;
 
 q = [linspace(qStart(1),qEnd(1),length(time));
      linspace(qStart(2),qEnd(2),length(time));
