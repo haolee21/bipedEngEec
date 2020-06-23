@@ -37,7 +37,7 @@ m_torso = m_trunk+m_head; %this total mass is not 100% though
 model.totM = totM;
 model.l_heel = l_heel;
 model.l_foot = l_foot;
-save('model','model');
+
 %CoM pos
 lc_thigh2 = 0.433*l_thigh;
 lc_calf2 = 0.433*l_calf;
@@ -203,6 +203,7 @@ tasks{1,2}=@()matlabFunction(dyn.G,'File','dyn/six_G','vars',[q1 q2 q3 q4 q5 q6]
 tasks{1,3}=@()matlabFunction(dyn.J,'File','dyn/six_J','vars',[q1 q2 q3 q4 q5 q6]);
 tasks{1,4}=@()matlabFunction(dyn.V,'File','dyn/six_V','vars',[q2 q3 q4 q5 q6 qd1 qd2 qd3 qd4 qd5 qd6]);
 tasks{1,5}=@()matlabFunction(dyn.J2,'file','dyn/six_J2','vars',[q1,q2,q3,q4,q5,q6]);
+tasks{1,6}=@()matlabFunction(dyn.J_hip,'file','dyn/six_J_hip','vars',[q1,q2,q3,q4,q5,q6]);
 % 
 % 
 % %% generate gradient for the M,G,J,V
@@ -211,16 +212,17 @@ M=dyn.M;
 V=dyn.V;
 J=dyn.J;
 J2 = dyn.J2; %jacobian on heel
+J_hip = dyn.J_hip;
 
 dG_dx = [diff(G,q1);diff(G,q2);diff(G,q3);diff(G,q4);diff(G,q5);diff(G,q6);zeros(2*numJ,numJ)];
 
-tasks{1,6}=@()matlabFunction(dG_dx,'file','grad/dG_dx','vars',[q1,q2,q3,q4,q5,q6]);       
+tasks{1,7}=@()matlabFunction(dG_dx,'file','grad/dG_dx','vars',[q1,q2,q3,q4,q5,q6]);       
 
 
 
 dV_dx = [diff(V,q1);diff(V,q2);diff(V,q3);diff(V,q4);diff(V,q5);diff(V,q6);diff(V,qd1);diff(V,qd2);diff(V,qd3);diff(V,qd4);diff(V,qd5);diff(V,qd6);zeros(numJ,numJ)];
 
-tasks{1,7}=@()matlabFunction(dV_dx,'file','grad/dV_dx','vars',[qd1,qd2,qd3,qd4,qd5,qd6,q2,q3,q4,q5,q6]);
+tasks{1,8}=@()matlabFunction(dV_dx,'file','grad/dV_dx','vars',[qd1,qd2,qd3,qd4,qd5,qd6,q2,q3,q4,q5,q6]);
 
 
 dM_dx2 = diff(M,q2);
@@ -228,11 +230,11 @@ dM_dx3 = diff(M,q3);
 dM_dx4 = diff(M,q4);
 dM_dx5 = diff(M,q5);
 dM_dx6 = diff(M,q6);
-tasks{1,8}=@()matlabFunction(dM_dx2,'file','grad/dM_dx2','vars',[q2,q3,q4,q5,q6]);
-tasks{1,9}=@()matlabFunction(dM_dx3,'file','grad/dM_dx3','vars',[q2,q3,q4,q5,q6]);
-tasks{1,10}=@()matlabFunction(dM_dx4,'file','grad/dM_dx4','vars',[q2,q3,q4,q5,q6]);
-tasks{1,11}=@()matlabFunction(dM_dx5,'file','grad/dM_dx5','vars',[q2,q3,q4,q5,q6]);
-tasks{1,12}=@()matlabFunction(dM_dx6,'file','grad/dM_dx6','vars',[q2,q3,q4,q5,q6]);        
+tasks{1,9}=@()matlabFunction(dM_dx2,'file','grad/dM_dx2','vars',[q2,q3,q4,q5,q6]);
+tasks{1,10}=@()matlabFunction(dM_dx3,'file','grad/dM_dx3','vars',[q2,q3,q4,q5,q6]);
+tasks{1,11}=@()matlabFunction(dM_dx4,'file','grad/dM_dx4','vars',[q2,q3,q4,q5,q6]);
+tasks{1,12}=@()matlabFunction(dM_dx5,'file','grad/dM_dx5','vars',[q2,q3,q4,q5,q6]);
+tasks{1,13}=@()matlabFunction(dM_dx6,'file','grad/dM_dx6','vars',[q2,q3,q4,q5,q6]);        
 
 parfor i=1:length(tasks)
     tasks{1,i}();
@@ -387,14 +389,13 @@ task{1,36}=@()matlabFunction(dsigma_ank,'file','knee_spring/dsigma_ank','vars',[
 %% GRF 
 % since for grf we need x_vel, we generate it at last
 
-
-k = 5e5;
+syms k cmax dmax us ud;
+% k = 2e5;
+% k = 2e6;
 ks = 2; %use ks to replace the spring constant e in the paper
-cmax = 1250;
-
-dmax = 1e-2;
-us = 0.8;
-ud=0.8;
+% cmax = 1250;
+% 
+% dmax = 1e-2;
 
 toe_y_pos = end_y_pos;
 
@@ -410,8 +411,8 @@ sigma_Fn_toe = 0.5*tanh(400*(th-toe_y_pos))+0.5;
 toe_vel = J(1:2,:)*[qd1;qd2;qd3;qd4;qd5;qd6];
 y_vel_toe = toe_vel(2,1);
 x_vel_toe = toe_vel(1,1);
-Fn_toe1 = sigma_Fn_toe*(k*(th-toe_y_pos)^ks+(th-toe_y_pos)/dmax*cmax*y_vel_toe*(0.5*tanh(-y_vel_toe*100)+0.5));%y_vel_toe<0 when Fn>0
-Fn_toe2 = sigma_Fn_toe*(k*(th-toe_y_pos)^ks+cmax*y_vel_toe*(0.5*tanh(-y_vel_toe*100)+0.5));
+Fn_toe1 = sigma_Fn_toe*(k*(th-toe_y_pos)^ks-(th-toe_y_pos)/dmax*cmax*y_vel_toe);%*(0.5*tanh(-y_vel_toe*100)+0.5));%y_vel_toe<0 when Fn>0
+Fn_toe2 = sigma_Fn_toe*(k*(th-toe_y_pos)^ks-cmax*y_vel_toe);%*(0.5*tanh(-y_vel_toe*100)+0.5));
 dFn_toe1 = [diff(Fn_toe1,q1);diff(Fn_toe1,q2);diff(Fn_toe1,q3);diff(Fn_toe1,q4);diff(Fn_toe1,q5);diff(Fn_toe1,q6);...
             diff(Fn_toe1,qd1);diff(Fn_toe1,qd2);diff(Fn_toe1,qd3);diff(Fn_toe1,qd4);diff(Fn_toe1,qd5);diff(Fn_toe1,qd6)];
 dFn_toe2 = [diff(Fn_toe2,q1);diff(Fn_toe2,q2);diff(Fn_toe2,q3);diff(Fn_toe2,q4);diff(Fn_toe2,q5);diff(Fn_toe2,q6);...
@@ -435,27 +436,27 @@ dFs_toe2_s = [diff(Fs_toe2_s,q1);diff(Fs_toe2_s,q2);diff(Fs_toe2_s,q3);diff(Fs_t
 dFs_toe2_d = [diff(Fs_toe2_d,q1);diff(Fs_toe2_d,q2);diff(Fs_toe2_d,q3);diff(Fs_toe2_d,q4);diff(Fs_toe2_d,q5);diff(Fs_toe2_d,q6);...
               diff(Fs_toe2_d,qd1);diff(Fs_toe2_d,qd2);diff(Fs_toe2_d,qd3);diff(Fs_toe2_d,qd4);diff(Fs_toe2_d,qd5);diff(Fs_toe2_d,qd6)];    
           
-tasks{1,37} = @()matlabFunction(Fn_toe1,'file','grf/Fn_toe1','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,38} = @()matlabFunction(Fn_toe2,'file','grf/Fn_toe2','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,39} = @()matlabFunction(dFn_toe1,'file','grf/dFn_toe1','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,40} = @()matlabFunction(dFn_toe2,'file','grf/dFn_toe2','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,41} = @()matlabFunction(Fs_toe1_s,'file','grf/Fs_toe1_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,42} = @()matlabFunction(Fs_toe1_d,'file','grf/Fs_toe1_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,43} = @()matlabFunction(Fs_toe2_s,'file','grf/Fs_toe2_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,44} = @()matlabFunction(Fs_toe2_d,'file','grf/Fs_toe2_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
+tasks{1,37} = @()matlabFunction(Fn_toe1,'file','grf/Fn_toe1','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,38} = @()matlabFunction(Fn_toe2,'file','grf/Fn_toe2','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,39} = @()matlabFunction(dFn_toe1,'file','grf/dFn_toe1','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,40} = @()matlabFunction(dFn_toe2,'file','grf/dFn_toe2','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,41} = @()matlabFunction(Fs_toe1_s,'file','grf/Fs_toe1_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,42} = @()matlabFunction(Fs_toe1_d,'file','grf/Fs_toe1_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,43} = @()matlabFunction(Fs_toe2_s,'file','grf/Fs_toe2_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,44} = @()matlabFunction(Fs_toe2_d,'file','grf/Fs_toe2_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
 
-tasks{1,45} = @()matlabFunction(dFs_toe1_s,'file','grf/dFs_toe1_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,46} = @()matlabFunction(dFs_toe1_d,'file','grf/dFs_toe1_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,47} = @()matlabFunction(dFs_toe2_s,'file','grf/dFs_toe2_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,48} = @()matlabFunction(dFs_toe2_d,'file','grf/dFs_toe2_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
+tasks{1,45} = @()matlabFunction(dFs_toe1_s,'file','grf/dFs_toe1_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,46} = @()matlabFunction(dFs_toe1_d,'file','grf/dFs_toe1_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,47} = @()matlabFunction(dFs_toe2_s,'file','grf/dFs_toe2_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,48} = @()matlabFunction(dFs_toe2_d,'file','grf/dFs_toe2_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
 % heel
 sigma_Fn_heel = 0.5*tanh(400*(th-heel_y_pos))+0.5;
 
 heel_vel = J(1:2,:)*[qd1;qd2;qd3;qd4;qd5;qd6];
 y_vel_heel = heel_vel(2,1);
 x_vel_heel = heel_vel(1,1);
-Fn_heel1 = sigma_Fn_heel*(k*(th-heel_y_pos)^ks+(th-heel_y_pos)/dmax*cmax*y_vel_heel*(0.5*tanh(-y_vel_heel*100)+0.5));%y_vel_heel<0 when Fn>0
-Fn_heel2 = sigma_Fn_heel*(k*(th-heel_y_pos)^ks+cmax*y_vel_heel*(0.5*tanh(-y_vel_heel*100)+0.5));
+Fn_heel1 = sigma_Fn_heel*(k*(th-heel_y_pos)^ks-(th-heel_y_pos)/dmax*cmax*y_vel_heel);%*(0.5*tanh(-y_vel_heel*100)+0.5));%y_vel_heel<0 when Fn>0
+Fn_heel2 = sigma_Fn_heel*(k*(th-heel_y_pos)^ks-cmax*y_vel_heel);%*(0.5*tanh(-y_vel_heel*100)+0.5));
 dFn_heel1 = [diff(Fn_heel1,q1);diff(Fn_heel1,q2);diff(Fn_heel1,q3);diff(Fn_heel1,q4);diff(Fn_heel1,q5);diff(Fn_heel1,q6);...
             diff(Fn_heel1,qd1);diff(Fn_heel1,qd2);diff(Fn_heel1,qd3);diff(Fn_heel1,qd4);diff(Fn_heel1,qd5);diff(Fn_heel1,qd6)];
 dFn_heel2 = [diff(Fn_heel2,q1);diff(Fn_heel2,q2);diff(Fn_heel2,q3);diff(Fn_heel2,q4);diff(Fn_heel2,q5);diff(Fn_heel2,q6);...
@@ -480,19 +481,19 @@ dFs_heel2_d = [diff(Fs_heel2_d,q1);diff(Fs_heel2_d,q2);diff(Fs_heel2_d,q3);diff(
               diff(Fs_heel2_d,qd1);diff(Fs_heel2_d,qd2);diff(Fs_heel2_d,qd3);diff(Fs_heel2_d,qd4);diff(Fs_heel2_d,qd5);diff(Fs_heel2_d,qd6)]; 
           
           
-tasks{1,49} = @()matlabFunction(Fn_heel1,'file','grf/Fn_heel1','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,50} = @()matlabFunction(Fn_heel2,'file','grf/Fn_heel2','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,51} = @()matlabFunction(dFn_heel1,'file','grf/dFn_heel1','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,52} = @()matlabFunction(dFn_heel2,'file','grf/dFn_heel2','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,53} = @()matlabFunction(Fs_heel1_s,'file','grf/Fs_heel1_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,54} = @()matlabFunction(Fs_heel1_d,'file','grf/Fs_heel1_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,55} = @()matlabFunction(Fs_heel2_s,'file','grf/Fs_heel2_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,56} = @()matlabFunction(Fs_heel2_d,'file','grf/Fs_heel2_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
+tasks{1,49} = @()matlabFunction(Fn_heel1,'file','grf/Fn_heel1','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,50} = @()matlabFunction(Fn_heel2,'file','grf/Fn_heel2','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,51} = @()matlabFunction(dFn_heel1,'file','grf/dFn_heel1','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,52} = @()matlabFunction(dFn_heel2,'file','grf/dFn_heel2','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,53} = @()matlabFunction(Fs_heel1_s,'file','grf/Fs_heel1_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,54} = @()matlabFunction(Fs_heel1_d,'file','grf/Fs_heel1_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,55} = @()matlabFunction(Fs_heel2_s,'file','grf/Fs_heel2_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,56} = @()matlabFunction(Fs_heel2_d,'file','grf/Fs_heel2_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
 
-tasks{1,57} = @()matlabFunction(dFs_heel1_s,'file','grf/dFs_heel1_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,58} = @()matlabFunction(dFs_heel1_d,'file','grf/dFs_heel1_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,59} = @()matlabFunction(dFs_heel2_s,'file','grf/dFs_heel2_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
-tasks{1,60} = @()matlabFunction(dFs_heel2_d,'file','grf/dFs_heel2_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th}); 
+tasks{1,57} = @()matlabFunction(dFs_heel1_s,'file','grf/dFs_heel1_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,58} = @()matlabFunction(dFs_heel1_d,'file','grf/dFs_heel1_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,59} = @()matlabFunction(dFs_heel2_s,'file','grf/dFs_heel2_s','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
+tasks{1,60} = @()matlabFunction(dFs_heel2_d,'file','grf/dFs_heel2_d','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],th,k,cmax,dmax,us,ud}); 
 % we need to take derivative of the jacobian
 dJ_q1 = diff(J,q1);
 dJ_q2 = diff(J,q2);
@@ -528,3 +529,13 @@ save('model','model');
 parfor i=1:length(tasks)
     tasks{1,i}();
 end
+
+
+%% hip velocity constraint
+J_hip = six_J_hip(q1,q2,q3,q4,q5,q6);
+hipvel = J_hip*[qd1;qd2;qd3;qd4;qd5;qd6];
+hip_x_vel = hipvel(1,1);
+dHip_x_vel = [diff(hip_x_vel,q1);diff(hip_x_vel,q2);diff(hip_x_vel,q3);diff(hip_x_vel,q4);diff(hip_x_vel,q5);diff(hip_x_vel,q6);
+              diff(hip_x_vel,qd1);diff(hip_x_vel,qd2);diff(hip_x_vel,qd3);diff(hip_x_vel,qd4);diff(hip_x_vel,qd5);diff(hip_x_vel,qd6)];  
+matlabFunction(hip_x_vel,'file','posCons/hip_x_vel','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6]});
+matlabFunction(dHip_x_vel,'file','posCons/dHip_x_vel','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6]});

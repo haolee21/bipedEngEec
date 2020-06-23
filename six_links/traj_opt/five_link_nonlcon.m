@@ -6,12 +6,15 @@ function [c,ceq,gradc,gradceq] = five_link_nonlcon(x,p)
 % [c2,gradc2]=headPosCon(x,p);
 % [c3,gradc3]=ankPosCon(x,p);
 % [c3,gradc3]=toe_heel(x,p);
-c = [];
-gradc=[];
+[c1,gradc1]=hipVelCon(x,p);
+%[c2,gradc2]=gaitLenCon(x,p);
+c = c1;
+gradc=gradc1;
 
-[ceq1,gradceq1]=dynConst(x,p);
+%[ceq1,gradceq1]=dynConst(x,p);
+[ceq1,gradceq1] = dynConst2(x,p);
 
-%[ceq2,gradceq2]=gaitLenCon(x,p);
+
 
 %[ceq3,gradceq3]=initYPosCons(x,p);
 

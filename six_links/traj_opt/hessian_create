@@ -1,0 +1,36 @@
+%% This will calculate the hessian of the object function and nonlinear constraint
+param.numJ=6;
+param.toe_th =-model.l_heel+0.02;
+param.head_h = 1.1 ; %the head should be at least 1.6m
+param.fri_coeff=0;
+param.gaitT = 0.5;
+param.sampT = 0.002;
+param.init_y = -model.l_heel+0.01; %initial feet height
+param.heel_h = model.l_heel; %this is fix in the model parameter
+param.foot_l = model.l_foot;
+param.dmax =1e-3;
+param.cmax=1250;
+param.k=2e6;
+param.us=0.8;
+param.ud=0.6;
+
+%% hipVelCon
+
+syms q1 q2 q3 q4 q5 q6 qd1 qd2 qd3 qd4 qd5 qd6 u1 u2 u3 u4 u5 u6
+
+cHipVelCon = hipVelCon([q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6,u1,u2,u3,u4,u5,u6],param);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

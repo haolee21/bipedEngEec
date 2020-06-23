@@ -141,6 +141,21 @@ end
 % ,not jacobian can be found
 % for here, we directly use forward kinematic to find the jacobian
 
+% Jacobian at the hip, this is for making sure it won't go backward
+Hip = turnRTtoMatrix(robot.A(1:1:3,q))*[0;0;0;1];
+hipPos = Hip(1:3,1);
+hip_w = subs(w_all{1,3},[q_t,qd_t],[q,qd]);
+dyn.J_hip = sym(zeros(6,numJ));
+for i=1:numJ
+    for k=1:3
+        dyn.J_hip(k,i) = simplify(diff(hipPos(k,1),q(i)));
+        dyn.J_hip(k+3,i) = simplify(diff(hip_w(k,1),qd(i))); 
+    end
+    
+end
+
+
+% Jacobian at the toe
 endT = turnRTtoMatrix(robot.A(1:1:numJ,q))*[end_eff(1);end_eff(2);0;1]; % end_eff is [l_foot,l_heel,l_calf], for the toe, it is [l_foot,l_heel,0] position of ankle joint
 endPos = endT(1:3,1);
 end_w = subs(w_all{1,end},[q_t,qd_t],[q,qd]);
@@ -153,11 +168,11 @@ for i=1:numJ
     
 end
 %% this is for a special jacobian on heel, since external force also act on the heel
-endT2 = turnRTtoMatrix(robot.A(1:1:numJ-1,q(1:end-1)))*[end_eff(2)+end_eff(3);0;0;1];  % heel is [l_calf+l_heel,0,0] position of knee joint
+endT2 = turnRTtoMatrix(robot.A(1:1:numJ,q(1:end)))*[0;end_eff(2);0;1];  % heel is [l_calf+l_heel,0,0] position of knee joint
 endPos2 = endT2(1:3,1);
 dyn.J2 = sym(zeros(6,numJ));
 end_w2 = subs(w_all{1,end-1},[q_t,qd_t],[q,qd]);
-for i=1:numJ-1
+for i=1:numJ
     for k=1:3
         dyn.J2(k,i) = simplify(diff(endPos2(k,1),q(i)));
         dyn.J2(k+3,i) = simplify(diff(end_w2(k,1),qd(i))); 

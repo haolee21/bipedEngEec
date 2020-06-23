@@ -1,4 +1,4 @@
-function drawRobot_self(sol,p,fig)
+function drawRobot_self(sol,p,fig,grf_plot)
 % drawRobot(q,p)
 %
 % This function draws the robot with configuration q and parameters p
@@ -7,7 +7,10 @@ function drawRobot_self(sol,p,fig)
 %   q = [5, 1] = column vector of a single robot configuration
 %   p = parameter struct
 %
-
+if nargin <4
+    grf_plot=1;
+end
+    
 
 % Compute the points that will be used for plotting
 
@@ -51,8 +54,8 @@ for frame=1:size(sol,2)
     [~,~,Fn_heel,Fs_heel]=heel_grf(sol(:,frame).',p);
         
     
-    fext_toe = [Fs_toe,Fn_toe]/m_tot;
-    fext_heel = [Fs_heel,Fn_heel]/m_tot;
+    fext_toe = [Fs_toe,Fn_toe]/m_tot*grf_plot;
+    fext_heel = [Fs_heel,Fn_heel]/m_tot*grf_plot;
     
     % Heuristics:
     L = 2;  % Maximum extended leg length

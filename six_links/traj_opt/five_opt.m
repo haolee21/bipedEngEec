@@ -1,6 +1,6 @@
 %% Calculate the optimized trajectories for 5 link biped model with GRF
 clear;
-modelName='human_1';
+modelName='human_3';
 warning on verbose
 %add share functions
 addpath dyn/
@@ -21,43 +21,56 @@ addpath (['../',modelName,'/robotGen/knee_spring/'])
 %% simulation parameter
 model = load(['../',modelName,'/robotGen/model']).model;
 param.numJ=6;
-param.toe_th =-model.l_heel+0.02;
+param.toe_th =-model.l_heel+0.01;
 param.head_h = 1.1 ; %the head should be at least 1.6m
 param.fri_coeff=0;
 param.gaitT = 0.5;
 param.sampT = 0.005;
-%param.init_y = -model.l_heel; %initial feet height
+param.init_y = -model.l_heel+0.01; %initial feet height
 param.heel_h = model.l_heel; %this is fix in the model parameter
 param.foot_l = model.l_foot;
-param.dmax =model.dmax;
+param.dmax =1e-3;
+param.cmax=0;
+param.k=2e6;
+param.us=0.8;
+param.ud=0.6;
 
+param.joint_fri = 0.003;
 
-param.hip_feet_ratio = 2.3;
+param.hip_feet_ratio = 2;
 param.hipLen=param.hip_feet_ratio*model.l_foot;
-param.gndclear = -model.l_heel+0.05;
-param.jointW = [1,0.5,0.5,0.5,0.5,1];
-param.knee_stiff=0;
+param.gaitLen = model.l_foot*3;
+
+
+param.gndclear = -model.l_heel+0.02;
+param.jointW = [1,1,1,1,1,1];
+% param.knee_stiff=1906.2/2; %patellar tendon, since we have two in series at the knee, the spring constant is half
+param.knee_stiff =76.325; % I use max moment (MVC/angle), since the stiffness of the paper is too high
+
 param.ank_stiff=408.65;
 
 time = 0:param.sampT:param.gaitT;
-param.floor_stiff=0.2;
+
 
 % set torque/angular velocity constraints
 
+% 
+% param.max_ank_vel = 2*360/180*pi;
+% param.max_kne_vel = 2*360/180*pi;
+% param.max_hip_vel = 2*270/180*pi;
 
-param.max_ank_vel = 360/180*pi;
-param.max_kne_vel = 270/180*pi;
-param.max_hip_vel = 270/180*pi;
+param.max_ank_vel = Inf;
+param.max_kne_vel = Inf;
+param.max_hip_vel = Inf;
 
 
-
-param.mass =model.totM*2;
-% param.max_hip_tau =1*param.mass;
-% param.min_hip_tau = 0.8*param.mass;
-% param.max_kne_tau = 1.5*param.mass;
-% param.min_kne_tau =0.5*param.mass;
-% param.max_ank_tau =2*param.mass;
-% param.min_ank_tau=0.01*param.mass;
+param.mass =model.totM;
+param.max_hip_tau =2*param.mass;
+param.min_hip_tau = 2*param.mass;
+param.max_kne_tau = 2*param.mass;
+param.min_kne_tau =1.5*param.mass;
+param.max_ank_tau =2*param.mass;
+param.min_ank_tau=0.1*param.mass;
 % 
 % param.max_hip_tau =param.mass;
 % param.min_hip_tau = param.mass;
@@ -66,12 +79,19 @@ param.mass =model.totM*2;
 % param.max_ank_tau =param.mass;
 % param.min_ank_tau= param.mass;
 
-param.max_hip_tau =param.mass;
-param.min_hip_tau = param.mass;
-param.max_kne_tau = param.mass;
-param.min_kne_tau =param.mass;
-param.max_ank_tau =param.mass;
-param.min_ank_tau= param.mass;
+% param.max_hip_tau =param.mass;
+% param.min_hip_tau = param.mass;
+% param.max_kne_tau = param.mass*2;
+% param.min_kne_tau =param.mass*2;
+% param.max_ank_tau =param.mass*2;
+% param.min_ank_tau= param.mass*2;
+
+% param.max_hip_tau =Inf;
+% param.min_hip_tau = Inf;
+% param.max_kne_tau = Inf;
+% param.min_kne_tau = Inf;
+% param.max_ank_tau = Inf;
+% param.min_ank_tau= Inf;
 %% initialize joint pos and torque
 
 % q = qmax*sin((2*time/param.gaitT+randn(param.jointNum,1))*pi);
@@ -82,13 +102,25 @@ param.min_ank_tau= param.mass;
 % q4 = -180;
 % q5 =10;
 
-q1 =50;
-q2 = -1;
-q3 =15;
-q4 = -95;
-q5 = 15;
+num_1 = floor(length(time)/4);
+num_2 = floor((length(time)-num_1)/2);
+num_3 = length(time)-num_1-num_2;
 
-q6 = -95;%+atan2d(param.heel_h,0.26);%0.26 is feet length
+q1 =65;
+q2 = -1;
+q3 =90-q1-q2;
+q4 = -80-q1;
+q5 = 3;
+
+% 
+% q1 =90;
+% q2 = 0;
+% q3 =90-q1-q2;
+% q4 = -180;
+% q5 = 0;
+% q6=-90;
+
+q6 = -180-q1-q2-q3-q4-q5;%+atan2d(param.heel_h,0.26);%0.26 is feet length
 
 qStart=[q1/180*pi,q2/180*pi,q3/180*pi,q4/180*pi,q5/180*pi,q6/180*pi];
 % qEnd = [pi+qStart(1)+qStart(2)+qStart(3)+qStart(4)+qStart(5),...
@@ -97,15 +129,46 @@ qStart=[q1/180*pi,q2/180*pi,q3/180*pi,q4/180*pi,q5/180*pi,q6/180*pi];
 %         -pi-qStart(3),...
 %         -qStart(2),...
 %         -qStart(1)];
+q1_mid_1 = 110;
+q2_mid_1 = -15;
+q3_mid_1 = 90-q1_mid_1-q2_mid_1;
+q4_mid_1 = -220;
+q5_mid_1 = 90;
+q6_mid_1 = -90;
 
-qEnd = [180-q1,q2,q3-90,q4-110,q5,q6]*pi/180;
+qMid_1 = [q1_mid_1,q2_mid_1,q3_mid_1,q4_mid_1,q5_mid_1,q6_mid_1]*pi/180;
 
-q = [linspace(qStart(1),qEnd(1),length(time));
-     linspace(qStart(2),qEnd(2),length(time));
-     linspace(qStart(3),qEnd(3),length(time));
-     linspace(qStart(4),qEnd(4),length(time));
-     linspace(qStart(5),qEnd(5),length(time));
-     linspace(qStart(6),qEnd(6),length(time))];
+q1_mid_2 = 100;
+q2_mid_2 = -5;
+q3_mid_2 = 90-q1_mid_2-q2_mid_2;
+q4_mid_2 = -210;
+q5_mid_2 = 45;
+q6_mid_2 = -90;
+qMid_2 = [q1_mid_2,q2_mid_2,q3_mid_2,q4_mid_2,q5_mid_2,q6_mid_2]*pi/180;
+
+
+q1_end = 180+q1+q2+q3+q4+q5;
+q2_end = -q5;
+q3_end = -180-q4;
+q4_end = -q1_end-90;
+q5_end = -q2;
+q6_end = -180-q1_end-q2_end-q3_end-q4_end-q5_end;
+qEnd = [q1_end,q2_end,q3_end,q4_end,q5_end,q6_end]*pi/180;
+
+q = [linspace(qStart(1),qMid_1(1),num_1),linspace(qMid_1(1),qMid_2(1),num_2),linspace(qMid_2(1),qEnd(1),num_3);
+     linspace(qStart(2),qMid_1(2),num_1),linspace(qMid_1(2),qMid_2(2),num_2),linspace(qMid_2(2),qEnd(2),num_3);
+     linspace(qStart(3),qMid_1(3),num_1),linspace(qMid_1(3),qMid_2(3),num_2),linspace(qMid_2(3),qEnd(3),num_3);
+     linspace(qStart(4),qMid_1(4),num_1),linspace(qMid_1(4),qMid_2(4),num_2),linspace(qMid_2(4),qEnd(4),num_3);
+     linspace(qStart(5),qMid_1(5),num_1),linspace(qMid_1(5),qMid_2(5),num_2),linspace(qMid_2(5),qEnd(5),num_3);
+     linspace(qStart(6),qMid_1(6),num_1),linspace(qMid_1(6),qMid_2(6),num_2),linspace(qMid_2(6),qEnd(6),num_3)];
+
+% q = [linspace(91/180*pi,91/180*pi,length(time));
+%      linspace(-1/180*pi,-1/180*pi,length(time));
+%      linspace(0/180*pi,0/180*pi,length(time));
+%      linspace(-181/180*pi,-181/180*pi,length(time));
+%      linspace(1/180*pi,1/180*pi,length(time));
+%      linspace(-90/180*pi,-90/180*pi,length(time))];
+
 dq = [0,(q(1,2:end)-q(1,1:end-1))/param.sampT;
       0,(q(2,2:end)-q(2,1:end-1))/param.sampT;
       0,(q(3,2:end)-q(3,1:end-1))/param.sampT;
@@ -136,50 +199,63 @@ prob.nonlcon = @(x)five_link_nonlcon(x,param);
 % the A matrix is define in the following way:
 %     [x(0),x(1),x(2).......x(end)], one condition, one row
 
-numCond = 13; %start-end pos conditions, velocity conditions
+numCond = 19; %start-end pos conditions, velocity conditions
 
 %start-end joint condition 
 %position
 Aeq = zeros(numCond,size(x0,1)*size(x0,2)); 
-Aeq(1:param.numJ,1:param.numJ*3)=[1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0;   %start frame 
-                                  0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0;
-                                  0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
-                                  0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
-                                  0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
-                                  1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+Aeq(1:param.numJ+1,1:param.numJ*3)=[1,1,1,1,1,0, 0,0,0,0,0,0,0,0,0,0,0,0;   %start frame 
+                                    0,0,0,0,1,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                    0,0,0,1,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                    0,0,1,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                    0,1,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                    1,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                    1,1,1,1,1,1, 0,0,0,0,0,0,0,0,0,0,0,0];
 % endframe
-Aeq(1:param.numJ,end-param.numJ*3+1:end) = [-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0; 
-                                             0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
-                                             0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
-                                             0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
-                                             0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0;
-                                             0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0];
+Aeq(1:param.numJ,end-param.numJ*3+1:end) = [-1,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0; 
+                                             0,1,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                             0,0,1,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                             0,0,0,1,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                             0,0,0,0,1,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                             0,0,0,0,0,1, 0,0,0,0,0,0,0,0,0,0,0,0];
 %velocity    
 %start frame
-Aeq(param.numJ+1:param.numJ+param.numJ/2,1:param.numJ*3) = [0,0,0,0,0,0,  1,0,0,0,0,0  ,0,0,0,0,0,0;
-                                                            0,0,0,0,0,0,  0,1,0,0,0,0  ,0,0,0,0,0,0;
-                                                            0,0,0,0,0,0,  0,0,1,0,0,0  ,0,0,0,0,0,0];
+Aeq(param.numJ+2:param.numJ*2+1,1:param.numJ*3) = [0,0,0,0,0,0,  1,0,0,0,0,0  ,0,0,0,0,0,0;
+                                                 0,0,0,0,0,0,  0,1,0,0,0,0  ,0,0,0,0,0,0;
+                                                 0,0,0,0,0,0,  0,0,1,0,0,0  ,0,0,0,0,0,0;
+                                                 0,0,0,0,0,0,  0,0,0,1,0,0  ,0,0,0,0,0,0;
+                                                 0,0,0,0,0,0,  0,0,0,0,1,0  ,0,0,0,0,0,0;
+                                                 0,0,0,0,0,0,  0,0,0,0,0,1  ,0,0,0,0,0,0];
 %end frame
-Aeq(param.numJ+1:param.numJ+param.numJ/2,end-3*param.numJ+1:end)=[0,0,0,0,0,0,  0,0,0,0,0,1  ,0,0,0,0,0,0;
-                                                                  0,0,0,0,0,0,  0,0,0,0,1,0  ,0,0,0,0,0,0;
-                                                                  0,0,0,0,0,0,  0,0,0,1,0,0  ,0,0,0,0,0,0];
+Aeq(param.numJ+2:param.numJ*2+1,end-3*param.numJ+1:end)=[0,0,0,0,0,0,  0,0,0,0,0,1  ,0,0,0,0,0,0;
+                                                       0,0,0,0,0,0,  0,0,0,0,1,0  ,0,0,0,0,0,0;
+                                                       0,0,0,0,0,0,  0,0,0,1,0,0  ,0,0,0,0,0,0;
+                                                       0,0,0,0,0,0,  0,0,1,0,0,0  ,0,0,0,0,0,0;
+                                                       0,0,0,0,0,0,  0,1,0,0,0,0  ,0,0,0,0,0,0;
+                                                       0,0,0,0,0,0,  1,0,0,0,0,0  ,0,0,0,0,0,0];
 %toeque
-Aeq(param.numJ+param.numJ/2+1:param.numJ+param.numJ,1:param.numJ*3) = [0,0,0,0,0,0,  0,0,0,0,0,0  ,1,0,0,0,0,0;
-                                                                       0,0,0,0,0,0,  0,0,0,0,0,0  ,0,1,0,0,0,0;
-                                                                       0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,1,0,0,0];
+Aeq(param.numJ*2+2:param.numJ*3+1,1:param.numJ*3) = [0,0,0,0,0,0,  0,0,0,0,0,0  ,1,0,0,0,0,0;
+                                                   0,0,0,0,0,0,  0,0,0,0,0,0  ,0,1,0,0,0,0;
+                                                   0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,1,0,0,0;
+                                                   0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,1,0,0;
+                                                   0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,0,1,0;
+                                                   0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,0,0,1];
 
-Aeq(param.numJ+param.numJ/2+1:param.numJ+param.numJ,end-3*param.numJ+1:end)=[0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,0,0,1;
-                                                                             0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,0,1,0;
-                                                                             0,0,0,0,0,0,  0,0,0,0,0,0 ,0,0,0,1,0,0];     
+Aeq(param.numJ*2+2:param.numJ*3+1,end-3*param.numJ+1:end)=[0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,0,0,1;
+                                                         0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,0,1,0;
+                                                         0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,1,0,0;
+                                                         0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,1,0,0,0;
+                                                         0,0,0,0,0,0,  0,0,0,0,0,0  ,0,1,0,0,0,0;
+                                                         0,0,0,0,0,0,  0,0,0,0,0,0  ,1,0,0,0,0,0];     
                                                                          
                                                                          
 % initial feet must be flat
-Aeq(param.numJ*2+1,1:param.numJ*3)=[1,1,1,1,1,1,  0,0,0,0,0,0  ,0,0,0,0,0,0];
+
                                      
                                                       
                                                       
 prob.Aeq = Aeq;
-prob.beq = [-pi;0;-pi;-pi;0;0;0;0;0;0;0;0;-pi];
+prob.beq = [-pi;0;-pi;-pi;0;0;-pi;0;0;0;0;0;0;0;0;0;0;0;0];
 
 % back never bend backward
 % -1*(q1+q2+q3) <-88 deg, 
@@ -201,10 +277,10 @@ prob.bineq = repmat(Bsamp,floor(param.gaitT/param.sampT+1),1);
 % upper limit and lower limit for each joints
 prob.ub = [179/180*pi*ones(1,size(x0,2));
            0*ones(1,size(x0,2))/180*pi;
-           89/180*pi*ones(1,size(x0,2));
-           -91/180*pi*ones(1,size(x0,2));
+           75/180*pi*ones(1,size(x0,2));
+           -100/180*pi*ones(1,size(x0,2));
            179/180*pi*ones(1,size(x0,2));
-           -10/180*pi*ones(1,size(x0,2));
+           -45/180*pi*ones(1,size(x0,2));
            param.max_ank_vel*ones(1,size(x0,2));
            param.max_kne_vel*ones(1,size(x0,2));
            param.max_hip_vel*ones(1,size(x0,2));
@@ -219,10 +295,10 @@ prob.ub = [179/180*pi*ones(1,size(x0,2));
            param.max_ank_tau*ones(1,size(x0,2))];
 prob.lb = [ones(1,size(x0,2))/180*pi;
            -179/180*pi*ones(1,size(x0,2));
-           -89/180*pi*ones(1,size(x0,2));
-           -259/180*pi*ones(1,size(x0,2));
+           -75/180*pi*ones(1,size(x0,2));
+           -260/180*pi*ones(1,size(x0,2));
            -0*ones(1,size(x0,2))/180*pi;
-           -125/180*pi*ones(1,size(x0,2));
+           -135/180*pi*ones(1,size(x0,2));
            -param.max_ank_vel*ones(1,size(x0,2));
            -param.max_kne_vel*ones(1,size(x0,2));
            -param.max_hip_vel*ones(1,size(x0,2));
@@ -244,10 +320,10 @@ prob.objective = @(x)objFun(x,param);
 
 
 %% solve
-iterTime = 1000;
+iterTime = 1500;
 options = optimoptions('fmincon','MaxIter',iterTime,'MaxFunctionEvaluations',iterTime*5,...
     'Display','iter','GradObj','on','TolCon',1e-8,'SpecifyConstraintGradient',true,...
-    'SpecifyObjectiveGradient',true,'StepTolerance',1e-10,'UseParallel',true);
+    'SpecifyObjectiveGradient',true,'StepTolerance',1e-10,'UseParallel',true,'ScaleProblem',true);
 prob.options = options;
 prob.solver = 'fmincon';
 
