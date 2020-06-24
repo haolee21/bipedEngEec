@@ -584,8 +584,8 @@ x_vel_heel = heel_vel(1,1);
 sigma_Fn_toe = 0.5*tanh(400*(th-toe_y_pos))+0.5;
 sigma_Fn_heel = 0.5*tanh(400*(th-heel_y_pos))+0.5;
 
-Fn_toe_ceq1 = Fy_toe-sigma_Fn_toe*(k*(th-toe_y_pos)^ks-(cmax*(0.5*tanh(2*(th-toe_y_pos)/dmax)+0.5))*(th-toe_y_pos)/dmax*y_vel_toe);
-Fn_heel_ceq1 = Fy_heel-sigma_Fn_heel*(k*(th-heel_y_pos)^ks-(cmax*(0.5*tanh(2*(th-toe_y_pos)/dmax)+0.5))*(th-heel_y_pos)/dmax*y_vel_heel);
+Fn_toe_ceq1 = Fy_toe-sigma_Fn_toe*   (k*(th-toe_y_pos)^ks -(cmax*(0.5*tanh(2*(th-toe_y_pos)/dmax)+0.5))*y_vel_toe);
+Fn_heel_ceq1 = Fy_heel-sigma_Fn_heel*(k*(th-heel_y_pos)^ks-(cmax*(0.5*tanh(2*(th-heel_y_pos)/dmax)+0.5))*y_vel_heel);
 
 tasks{1,task_i}=@()matlabFunction(Fn_toe_ceq1,'file','grf/Fn_toe_ceq1','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],[Fx_toe,Fy_toe],th,k,cmax,dmax}); task_i=task_i+1;
 tasks{1,task_i}=@()matlabFunction(Fn_heel_ceq1,'file','grf/Fn_heel_ceq1','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],[Fx_heel,Fy_heel],th,k,cmax,dmax}); task_i=task_i+1;

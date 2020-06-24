@@ -25,8 +25,8 @@ param.toe_th =-model.l_heel+0.01;
 param.head_h = 1.1 ; %the head should be at least 1.6m
 param.fri_coeff=0;
 param.gaitT = 0.5;
-param.sampT = 0.01;
-param.init_y = -model.l_heel+0.01; %initial feet height
+param.sampT = 0.008;
+%param.init_y = -model.l_heel+0.01; %initial feet height
 param.heel_h = model.l_heel; %this is fix in the model parameter
 param.foot_l = model.l_foot;
 param.dmax =1e-3;
@@ -188,10 +188,10 @@ Fext_heel = [zeros(1,length(q));ones(1,length(q))];
 
 x0 = [q;dq;u;Fext_toe;Fext_heel];
 
-tori= linspace(0,1,size(x0,2));
-x0_temp = load('x0_val5').x;
-t_temp = linspace(0,1,size(x0_temp,2));
-x0=interp1(t_temp,x0_temp.',tori).';
+% tori= linspace(0,1,size(x0,2));
+% x0_temp = load('x0_val5').x;
+% t_temp = linspace(0,1,size(x0_temp,2));
+% x0=interp1(t_temp,x0_temp.',tori).';
 % dyndq = @(x,tauext)dyn_dq(x,tauext,jointNum,toe_th);
 % rowfun(dyndq,table(x,ext_tau))
 
@@ -328,9 +328,9 @@ prob.lb = [ones(1,size(x0,2))/180*pi;
            -param.max_kne_tau*ones(1,size(x0,2));
            -param.min_ank_tau*ones(1,size(x0,2));
            -param.max_Fx*ones(1,size(x0,2));
-            zeros(1,size(x0,2));
+           -0.001*ones(1,size(x0,2)); %I just add some values to make it easier to calculate, after all optimal solution should gave us zero
            -param.max_Fx*ones(1,size(x0,2));
-            zeros(1,size(x0,2))];
+           -0.001*ones(1,size(x0,2))];
 
 
 %% define object function
@@ -340,7 +340,10 @@ prob.objective = @(x)objFun(x,param);
 
 
 %% solve
-iterTime = 100000;
+
+prob.x0 = x0;
+
+iterTime = 200;
 % options = optimoptions('fmincon','MaxIter',iterTime,'MaxFunctionEvaluations',iterTime*5,...
 %     'Display','iter','GradObj','on','TolCon',1e-8,'SpecifyConstraintGradient',true,...
 %     'SpecifyObjectiveGradient',true,'StepTolerance',1e-10,'UseParallel',true,'SubproblemAlgorithm' ,'factorization')%,'HessianFcn',@(x,lambda)hessianfcn(x,lambda,param));%,'ScaleProblem',true);%'HessianFcn',@hessianfcn
@@ -348,7 +351,7 @@ iterTime = 100000;
 
 options = optimoptions('fmincon','MaxIter',iterTime,'MaxFunctionEvaluations',iterTime*5,...
     'Display','iter','GradObj','on','TolCon',1e-8,'SpecifyConstraintGradient',true,...
-    'SpecifyObjectiveGradient',true,'StepTolerance',1e-10,'UseParallel',true,'HessianFcn',@(x,lambda)hessianfcn(x,lambda,param));%,'ScaleProblem',true);%'HessianFcn',@hessianfcn
+    'SpecifyObjectiveGradient',true,'StepTolerance',1e-10,'UseParallel',true,'DiffMinChange',0,'ScaleProblem',true);%,'HessianFcn',@(x,lambda)hessianfcn(x,lambda,param));%,'ScaleProblem',true);%'HessianFcn',@hessianfcn
 
 
 prob.options = options;
@@ -356,7 +359,7 @@ prob.solver = 'fmincon';
 
 % exitflag=0;
 % x = x0;
-prob.x0 = x0;
+
 % while(true)
 %      
 %     [x,fval,exitflag,output] = fmincon(prob);
