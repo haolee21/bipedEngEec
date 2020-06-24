@@ -7,7 +7,7 @@ dObj = 0.5*sum(p.jointW.*sum(u.^2,2).');
 dObj = dObj+0.5*sum(fext.^2,'all')*0.01;
 
 
-dObjGrad = [zeros(p.numJ*2,size(x,2));diag(p.jointW)*u;fext*0.1];
+dObjGrad = [zeros(p.numJ*2,size(x,2));diag(p.jointW)*u;fext*0.01];
 % dObjGrad(2,:) = q(2,:);
 % dObjGrad(5,:) = q(5,:);
 % dObjGrad = dObjGrad+fri_grad*p.fri_coeff;

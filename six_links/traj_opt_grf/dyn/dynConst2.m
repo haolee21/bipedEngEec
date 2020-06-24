@@ -15,7 +15,7 @@ for i=1:size(x,2)-1
     s_half = 0.5*(x(1:p.numJ*2,i)+x(1:p.numJ*2,i+1))+p.sampT/8*(f1-f2);
     u_half = 0.5*(x(2*p.numJ+1:3*p.numJ,i)+x(2*p.numJ+1:3*p.numJ,i+1));
     F_half = 0.5*(x(3*p.numJ+1:3*p.numJ+4,i)+x(3*p.numJ+1:3*p.numJ+4,i+1));
-%     [u_half,du_half] = newton_interp(x(p.numJ*2+1:end,:),i+0.5);
+
     x_half = [s_half;u_half;F_half];
     
     [f_half,df_half_s,df_half_u,df_half_f] = f_x2(x_half,p);
@@ -41,13 +41,7 @@ for i=1:size(x,2)-1
 %     gradceq(3*p.numJ+1:3*p.numJ+4,i+1,2*p.numJ*(i-1)+1:2*p.numJ*i) = -1/2*p.sampT*df2f;
 %     
     
-%     for c=1:size(x,2)
-%         du_half_du = reshape(du_half(:,c,:),[p.numJ,p.numJ]);
-%         gradceq(2*p.numJ+1:end,c,2*p.numJ*(i-1)+1:2*p.numJ*i)=du_half_du*df_half_u;
-%         
-%         
-%         
-%     end
+
     
     
     

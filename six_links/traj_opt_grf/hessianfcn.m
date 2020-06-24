@@ -39,11 +39,11 @@ for i=1:floor(p.gaitT/p.sampT)%iterate for timeSteps -1
     x2 = x(i*(p.numJ*3+4)+1:(i+1)*(p.numJ*3+4));
     [f1,df1s,df1u,df1f] = f_x2(x1,p);
     [f2,df2s,df2u,df2f] = f_x2(x2,p);
-    s_half = 0.5*(x1(1:p.numJ*2)+x2(1:p.numJ*2))+p.sampT/8*(f1-f2);
-    u_half = 0.5*(x1(2*p.numJ+1:3*p.numJ)+x2(2*p.numJ+1:3*p.numJ));
-    F_half = 0.5*(x1(3*p.numJ+1:3*p.numJ+4)+x2(3*p.numJ+1:3*p.numJ+4));
-    x_half = [s_half;u_half;F_half];
-    [~,df_half_s,~,~] = f_x2(x_half,p);
+%     s_half = 0.5*(x1(1:p.numJ*2)+x2(1:p.numJ*2))+p.sampT/8*(f1-f2);
+%     u_half = 0.5*(x1(2*p.numJ+1:3*p.numJ)+x2(2*p.numJ+1:3*p.numJ));
+%     F_half = 0.5*(x1(3*p.numJ+1:3*p.numJ+4)+x2(3*p.numJ+1:3*p.numJ+4));
+%     x_half = [s_half;u_half;F_half];
+%     [~,df_half_s,~,~] = f_x2(x_half,p);
     
     
     % I will probably cause confusion here, but here f's dimension should
@@ -204,35 +204,42 @@ for i=1:floor(p.gaitT/p.sampT)%iterate for timeSteps -1
     % now we have df_dxx terms (22x22), yet, it is not the hessian of the
     % constraints
     
-%     c1 = -p.sampT/6*(df1+
-    cross_term1 = zeros(3*p.numJ+4,3*p.numJ+4,2*p.numJ);
-    cross_term2 = zeros(3*p.numJ+4,3*p.numJ+4,2*p.numJ);
+% %     c1 = -p.sampT/6*(df1+
+%     cross_term1 = zeros(3*p.numJ+4,3*p.numJ+4,2*p.numJ);
+%     cross_term2 = zeros(3*p.numJ+4,3*p.numJ+4,2*p.numJ);
+%     
+%     for it1=1:2*p.numJ
+%         for it2=1:2*p.numJ
+%             cross_term1(it1,it2,:) = reshape(df1_new(it1,it2,:),[1,2*p.numJ])*df_half_s;
+%             cross_term2(it1,it2,:) = reshape(df2_new(it1,it2,:),[1,2*p.numJ])*df_half_s;
+%         end
+%     end
+%     
+%     cross_term1_1 = zeros(3*p.numJ+4,3*p.numJ+4,2*p.numJ);
+%     cross_term2_1 = zeros(3*p.numJ+4,3*p.numJ+4,2*p.numJ);
+%     for it1=1:2*p.numJ
+%         cross_term1_1(it1,:,:) = reshape(df1_new(it1,:,:),[3*p.numJ+4,2*p.numJ])*df_half_s;
+%         cross_term2_1(it1,:,:) = reshape(df2_new(it1,:,:),[3*p.numJ+4,2*p.numJ])*df_half_s;
+%     end
+%     
+%     
+%     dcdxx1 = -p.sampT/6*(df1_new+p.sampT/8*cross_term1);
+%     dcdxx2 = -p.sampT/6*(df2_new-p.sampT/8*cross_term2);
     
-    for it1=1:2*p.numJ
-        for it2=1:2*p.numJ
-            cross_term1(it1,it2,:) = reshape(df1_new(it1,it2,:),[1,2*p.numJ])*df_half_s;
-            cross_term2(it1,it2,:) = reshape(df2_new(it1,it2,:),[1,2*p.numJ])*df_half_s;
-        end
-    end
+
+    %here I use normal traptodiz method
     
-    cross_term1_1 = zeros(3*p.numJ+4,3*p.numJ+4,2*p.numJ);
-    cross_term2_1 = zeros(3*p.numJ+4,3*p.numJ+4,2*p.numJ);
-    for it1=1:2*p.numJ
-        cross_term1_1(it1,:,:) = reshape(df1_new(it1,:,:),[3*p.numJ+4,2*p.numJ])*df_half_s;
-        cross_term2_1(it1,:,:) = reshape(df2_new(it1,:,:),[3*p.numJ+4,2*p.numJ])*df_half_s;
-    end
+    dcdxx1 = -p.sampT/2*df1_new;
+    dcdxx2 = -p.sampT/2*df2_new;
+
+
     
     
-    dcdxx1 = -p.sampT/6*(df1_new+p.sampT/8*cross_term1);
-    dcdxx2 = -p.sampT/6*(df2_new-p.sampT/8*cross_term2);
-    
-    
-    eq_idx = eq_idx+p.numJ; % q2_dot-q1_dot has not hessian
-    for i_con = 1:p.numJ %each time step has numJ constraints
+    for i_con = 1:p.numJ*2 %each time step has numJ constraints
         
         curHout = zeros(size(x,1));
-        curHout((i-1)*(3*p.numJ+4)+1:(i-1)*(3*p.numJ+4)+2*p.numJ,(i-1)*(3*p.numJ+4)+1:(i-1)*(3*p.numJ+4)+2*p.numJ)=dcdxx1(:,:,(i_con-1)*2*p.numJ+7);
-        curHout(i*(3*p.numJ+4)+1:i*(3*p.numJ+4)+2*p.numJ,i*(3*p.numJ+4)+1:i*(3*p.numJ+4)+2*p.numJ)=dcdxx2(:,:,(i_con-1)*2*p.numJ+7);
+        curHout((i-1)*(3*p.numJ+4)+1:i*(3*p.numJ+4),(i-1)*(3*p.numJ+4)+1:i*(3*p.numJ+4))=dcdxx1(:,:,i_con);
+        curHout(i*(3*p.numJ+4)+1:(i+1)*(3*p.numJ+4),i*(3*p.numJ+4)+1:(i+1)*(3*p.numJ+4))=dcdxx2(:,:,i_con);
         Hout = Hout+lambda.eqnonlin(eq_idx)*curHout;
         eq_idx = eq_idx+1;
         
@@ -244,7 +251,37 @@ for i=1:floor(p.gaitT/p.sampT)%iterate for timeSteps -1
     
 end
 
+% grf eqn constraints
 
+for i=1:floor(p.gaitT/p.sampT)+1
+    %toe constraints
+    curHout = zeros(size(x,1));
+    curX = x((i-1)*(p.numJ*3+4)+1:i*(p.numJ*3+4));
+    cur_h = hess_grf_ceq_toe(curX.',p.toe_th,p.dmax,p.cmax,p.k,p.us,p.ud);
+    curHout((i-1)*(p.numJ*3+4)+1:i*(p.numJ*3+4),(i-1)*(p.numJ*3+4)+1:i*(p.numJ*3+4))=cur_h;
+    Hout = Hout+lambda.eqnonlin(eq_idx)*curHout;
+    eq_idx = eq_idx+1; 
+    %heel constraints
+    curHout = zeros(size(x,1));
+    cur_h = hess_grf_ceq_heel(curX.',p.toe_th,p.dmax,p.cmax,p.k,p.us,p.ud);
+    curHout((i-1)*(p.numJ*3+4)+1:i*(p.numJ*3+4),(i-1)*(p.numJ*3+4)+1:i*(p.numJ*3+4))=cur_h;
+    Hout = Hout+lambda.eqnonlin(eq_idx)*curHout;
+    eq_idx = eq_idx+1; 
+end
+
+
+%hip_len constraints
+curHout = zeros(size(x,1));
+x1 = x(1:p.numJ*3+4);
+x2 = x(end-p.numJ*3-3:end);
+cur_h = h_hipLen(x1.',x2.',p.hipLen);
+
+curHout(1:3*p.numJ+4,1:3*p.numJ+4) = cur_h(1:3*p.numJ+4,1:3*p.numJ+4);
+curHout(end-3*p.numJ-3:end,end-3*p.numJ-3:end) = cur_h(3*p.numJ+5:end,3*p.numJ+5:end);
+Hout = Hout+lambda.eqnonlin(eq_idx)*curHout;
+    
+   
+    
 
 
 
