@@ -1,0 +1,90 @@
+%% Optimal gait trajectory generating with contact invarient method
+clear;
+modelName='human_3';
+addpath (['../',modelName,'/robotGen/'])
+addpath (['../',modelName,'/robotGen/grad/'])
+addpath (['../',modelName,'/robotGen/posCons/'])
+addpath (['../',modelName,'/robotGen/dyn/'])
+addpath (['../',modelName,'/robotGen/obj/'])
+addpath (['../',modelName,'/robotGen/grf/'])
+addpath (['../',modelName,'/robotGen/knee_spring/'])
+%% set up the parameters 
+
+param.numJ=6;
+param.toe_th =-model.l_heel+0.01;
+param.head_h = 1.1 ; %the head should be at least 1.6m
+param.gaitT = 0.5;
+param.sampT = 0.01;
+%% Generate nominal trajectory
+
+q1 =70;
+q2 = -1;
+q3 =90-q1-q2;
+q4 = -80-q1;
+q5 = 3;
+q6 = -180-q1-q2-q3-q4-q5;
+qStart=[q1/180*pi,q2/180*pi,q3/180*pi,q4/180*pi,q5/180*pi,q6/180*pi];
+q1_end = 180+q1+q2+q3+q4+q5;
+q2_end = -q5;
+q3_end = -180-q4;
+q4_end = -q1_end-90;
+q5_end = -q2;
+q6_end = -180-q1_end-q2_end-q3_end-q4_end-q5_end;
+qEnd = [q1_end,q2_end,q3_end,q4_end,q5_end,q6_end]*pi/180;
+
+dataLen = param.gaitT/param.sampT+1;
+q = [linspace(qStart(1),qEnd(1),dataLen);
+     linspace(qStart(2),qEnd(2),dataLen);
+     linspace(qStart(3),qEnd(3),dataLen);
+     linspace(qStart(4),qEnd(4),dataLen);
+     linspace(qStart(5),qEnd(5),dataLen);
+     linspace(qStart(6),qEnd(6),dataLen)];
+
+dq =[(q(1,2)-q(1,1))/param.sampT*ones(1,dataLen);
+     (q(2,2)-q(2,1))/param.sampT*ones(1,dataLen);
+     (q(3,2)-q(3,1))/param.sampT*ones(1,dataLen);
+     (q(4,2)-q(4,1))/param.sampT*ones(1,dataLen);
+     (q(5,2)-q(5,1))/param.sampT*ones(1,dataLen);
+     (q(6,2)-q(6,1))/param.sampT*ones(1,dataLen)];
+ddq = zeros(6,dataLen);
+
+u = zeros(param.numJ,dataLen);
+f = zeros(param.numJ*2,dataLen);
+
+% calculate the c value (is there contact)
+
+c_toe = zeros(1,dataLen);
+c_heel = zeros(1,dataLen);
+for i =1:dataLen
+    
+    
+    
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

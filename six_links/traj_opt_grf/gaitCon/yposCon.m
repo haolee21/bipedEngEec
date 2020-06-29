@@ -15,7 +15,7 @@ gradc = zeros(size(x,1),size(x,2),size(c,2));
 for i=1:end_i-start_i+1
     curX = x(:,start_i+i-1);
     c(i)=p.gndclear-end_y_pos(curX.');
-    gradc(:,i+start_i-1,i) = [-1*end_y_grad(curX.'),zeros(1,p.numJ*2)].';
+    gradc(1:p.numJ*3,i+start_i-1,i) = [-1*end_y_grad(curX.'),zeros(1,p.numJ*2)].';
 end
 c = c.';
 gradc = reshape(gradc,[size(x,1)*size(x,2),size(c,1)]); %c was tranpose in the previous line
