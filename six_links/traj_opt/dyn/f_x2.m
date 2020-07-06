@@ -25,7 +25,7 @@ if(q(1)>pi/2)
     dtau_tend_1(1,1) = -p.ank_stiff;
 end
 if(q(6)<-3*pi/2)
-    tau_tend_2 = [0,0,0,0,0,p.ank_stiff*(-3*pi/2-q(6))];
+    tau_tend_2 = [0,0,0,0,0,p.ank_stiff*(-pi/2-q(6))];
     dtau_tend_2(6,6) = -p.ank_stiff;
 end
     

@@ -804,7 +804,7 @@ tasks{1,task_i}=@()matlabFunction(dFs_toe_c2,'file','grf/dFs_toe_c2','vars',{[q1
 tasks{1,task_i}=@()matlabFunction(dFs_heel_c2,'file','grf/dFs_heel_c2','vars',{[q1,q2,q3,q4,q5,q6,qd1,qd2,qd3,qd4,qd5,qd6],Fx_heel}); task_i=task_i+1;               
                
 % friction term
-% this is a bit risky, I assume Fs and xvel is on opposite direction
+% no x_vel when there is external force
 fri_toe = (s_toe*x_vel_toe)^2;
 fri_heel = (s_heel*x_vel_heel)^2;
 

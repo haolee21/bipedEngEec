@@ -46,7 +46,6 @@ param.gndclear = -model.l_heel+0.02;
 param.jointW = [1,1,1,1,1,1];
 % param.knee_stiff=1906.2/2; %patellar tendon, since we have two in series at the knee, the spring constant is half
 param.knee_stiff =76.325; % I use max moment (MVC/angle), since the stiffness of the paper is too high
-
 param.ank_stiff=408.65;
 
 time = 0:param.sampT:param.gaitT;
@@ -223,7 +222,7 @@ numS = param.numJ*3+4+2;
 %start-end joint condition 
 %position
 Aeq = zeros(numCond,size(x0,1)*size(x0,2)); 
-Aeq(1:param.numJ+1,1:param.numJ*3)=[1,1,1,1,1,0, 0,0,0,0,0,0,0,0,0,0,0,0;   %start frame 
+Aeq(1:param.numJ+1,1:param.numJ*3)=[0,0,0,0,0,1, 0,0,0,0,0,0,0,0,0,0,0,0;   %start frame 
                                     0,0,0,0,1,0, 0,0,0,0,0,0,0,0,0,0,0,0;
                                     0,0,0,1,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
                                     0,0,1,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
@@ -231,7 +230,7 @@ Aeq(1:param.numJ+1,1:param.numJ*3)=[1,1,1,1,1,0, 0,0,0,0,0,0,0,0,0,0,0,0;   %sta
                                     1,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
                                     1,1,1,1,1,1, 0,0,0,0,0,0,0,0,0,0,0,0];
 % endframe
-Aeq(1:param.numJ,end-numS+1:end-numS+param.numJ*3) =   [-1,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0; 
+Aeq(1:param.numJ,end-numS+1:end-numS+param.numJ*3) =   [ 1,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0; 
                                                          0,1,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
                                                          0,0,1,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
                                                          0,0,0,1,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
@@ -274,7 +273,7 @@ Aeq(param.numJ*2+2:param.numJ*3+1,end-numS+1:end-numS+param.numJ*3)=[0,0,0,0,0,0
                                                       
                                                       
 prob.Aeq = Aeq;
-prob.beq = [-pi;0;-pi;-pi;0;0;-pi;0;0;0;0;0;0;0;0;0;0;0;0];
+prob.beq = [0;0;-pi;-pi;0;0;-pi;0;0;0;0;0;0;0;0;0;0;0;0];
 
 % back never bend backward
 % -1*(q1+q2+q3) <-88 deg, 
@@ -372,7 +371,7 @@ iterTime =10000;
 
 options = optimoptions('fmincon','Algorithm','interior-point','MaxIter',iterTime,'MaxFunctionEvaluations',iterTime*5,...
     'Display','iter','GradObj','on','TolCon',1e-8,'SpecifyConstraintGradient',true,...
-    'SpecifyObjectiveGradient',true,'StepTolerance',1e-15,'UseParallel',true,'DiffMinChange',0,'ScaleProblem',true);%,'HessianFcn',@(x,lambda)hessianfcn(x,lambda,param));%,'ScaleProblem',true);%'HessianFcn',@hessianfcn
+    'SpecifyObjectiveGradient',true,'StepTolerance',1e-20,'UseParallel',true,'DiffMinChange',0,'ScaleProblem',true);%,'HessianFcn',@(x,lambda)hessianfcn(x,lambda,param));%,'ScaleProblem',true);%'HessianFcn',@hessianfcn
 
 
 prob.options = options;

@@ -21,14 +21,14 @@ gradc=[gradc1,gradc2,gradc3,gradc4];
 
 %[ceq1,gradceq1]=dynConst(x,p);
 
-[ceq3,gradceq3]=fri_cons(x,p);
+% [ceq3,gradceq3]=fri_cons(x,p);
 
 
 %[ceq3,gradceq3]=initYPosCons(x,p);
 
 % [c,ceq1,gradc,gradceq1] = gather(c,ceq,gradc,gradceq);
 % [ceq5,gradceq5]=ext_const(x,p);
-ceq = [ceq1;ceq3;ceq4];
-gradceq = [gradceq1,gradceq3,gradceq4];
+ceq = [ceq1;ceq4];
+gradceq = [gradceq1,gradceq4];
 
 end

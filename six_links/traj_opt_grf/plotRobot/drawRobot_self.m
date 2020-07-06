@@ -64,7 +64,7 @@ for frame=1:size(sol,2)
     % Heuristics:
     L = 2;  % Maximum extended leg length
     xBnd = L*[-1.2,1.2];
-    yBnd = [-0.5*L,1.5*L ];
+    yBnd = [-0.5*L-1,1.5*L ];
     
     % Colors:
     colorGround = [118,62,12]/255;

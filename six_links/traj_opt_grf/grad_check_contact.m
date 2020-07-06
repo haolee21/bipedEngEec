@@ -9,11 +9,12 @@ x1 = load('x_contact_test.mat').x;
 f_toe = load('f_toe_test.mat').f_toe;
 f_heel = load('f_heel_test.mat').f_heel;
 param = load('param_contact_test.mat').param;
-x2 = x1+randn(size(x1,1),size(x1,2))*0.00001;
+x2 = x1+randn(size(x1,1),size(x1,2))*0.001;
 
-
-
-
+param.smooth_vel = 0.1;
+param.initPos_w = 100;
+param.init_vel_w = 1;
+param.end_pos_w = 10;
 %check f_dyn
 err_rate =0;
 for i=1:size(x1,2)

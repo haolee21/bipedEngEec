@@ -17,7 +17,7 @@ dtau_kne_tend_2 = zeros(p.numJ*2,p.numJ);
 % ankle tendon
 tau_tend_1 = p.ank_stiff*[pi/2-q(1),0,0,0,0,0];
 dtau_tend_1(1,1) = -p.ank_stiff;
-tau_tend_2 = p.ank_stiff*[0,0,0,0,0,-3*pi/2-q(6)];
+tau_tend_2 = p.ank_stiff*[0,0,0,0,0,-pi/2-q(6)];
 dtau_tend_2(6,6)=-p.ank_stiff;
 % knee tendon
 tau_kne_tend_1 = [0,-p.knee_stiff*q(2),0,0,0,0];
