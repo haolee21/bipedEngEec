@@ -47,14 +47,14 @@ for frame=1:size(sol,2)
     
     %plot grf
     fext_toe_loc=P6;
-    Fs_toe = sol(p.numJ*3+1,frame);
-    Fn_toe = sol(p.numJ*3+2,frame);
+    Fs_toe = sol(p.numJ*2+1,frame);
+    Fn_toe = sol(p.numJ*2+2,frame);
 %     [~,~,Fn_toe,Fs_toe]=toe_grf(sol(:,frame).',p);
     
     % force act on the heel
     fext_heel_loc=P7;
-    Fs_heel = sol(p.numJ*3+3,frame);
-    Fn_heel = sol(p.numJ*3+4,frame);
+    Fs_heel = sol(p.numJ*2+3,frame);
+    Fn_heel = sol(p.numJ*2+4,frame);
 %     [~,~,Fn_heel,Fs_heel]=heel_grf(sol(:,frame).',p);
         
     
