@@ -1,7 +1,7 @@
 %% Calculate the optimized trajectories for 5 link biped model with GRF
 % the dynamics constraints are discrete Lagrangian
 clear;
-modelName='human_3';
+modelName='human_4';
 warning on verbose
 %add share functions
 addpath dyn/
@@ -30,21 +30,21 @@ param.sampT = 0.01;
 param.heel_h = model.l_heel; %this is fix in the model parameter
 param.foot_l = model.l_foot;
 param.dmax =1e-3;
-param.cmax=1500;
-param.k=3e6;
+param.cmax=1000;
+param.k=2e6;
 param.us=0.8;
 param.ud=0.6;
 param.init_y=-model.l_heel;
 
 param.joint_fri = 0.01;
 
-param.hip_feet_ratio = 2;
+param.hip_feet_ratio = 3;
 param.hipLen=param.hip_feet_ratio*model.l_foot;
 param.gaitLen = model.l_foot*3;
 param.init_y = 0;
 
 param.gndclear = -model.l_heel+0.02;
-param.jointW = [5,1,1,1,1,1];
+param.jointW = [5,0.1,1,1,0.1,0.1];
 
 param.knee_stiff =76.325; % I use max moment (MVC/angle), since the stiffness of the paper is too high
 % param.knee_stiff=0;
@@ -259,7 +259,7 @@ prob.lb = [ones(1,size(x0,2))/180*pi;
             -0.0001*ones(2,size(x0,2))];
 prob.objective = @(x)objFun_d(x,param);
 
-iterTime =5000;
+iterTime =8000;
 
 options = optimoptions('fmincon','Algorithm','interior-point','MaxIter',iterTime,'MaxFunctionEvaluations',iterTime*5,...
     'Display','iter','GradObj','on','TolCon',1e-8,'SpecifyConstraintGradient',true,...
