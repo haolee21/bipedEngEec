@@ -52,6 +52,7 @@ dtau_kne_tend_2(5,5) = -p.knee_stiff;
 
 
 ddq = (u-V-G+fext_toe*J_toe+fext_heel*J_heel-dq*eye(p.numJ)*p.joint_fri+tau_tend_1+tau_tend_2+tau_kne_tend_1+tau_kne_tend_2)/M;
+d_joint_fri =[zeros(p.numJ);-eye(p.numJ)*p.joint_fri];
 
 f = [dq,ddq];
 
@@ -87,7 +88,7 @@ df_ext_toe_df = [zeros(p.numJ),J_toe/M];
 df_ext_heel_df= [zeros(p.numJ),J_heel/M];
                                         
 dfs = [[zeros(p.numJ);eye(p.numJ)],...
-       (-dVdx-dGdx-dMdx+dtau_tend_1+dtau_tend_2+dtau_kne_tend_1+dtau_kne_tend_2+df_ext_toe_dx+df_ext_heel_dx)/M];
+       (-dVdx-dGdx-dMdx+dtau_tend_1+dtau_tend_2+dtau_kne_tend_1+dtau_kne_tend_2+df_ext_toe_dx+df_ext_heel_dx+d_joint_fri )/M];
 
 % grad =(dTaudx-dVdx-dGdx-dMdx+df_ext_toe1+df_ext_toe2+df_ext_heel1+df_ext_heel2-[zeros(p.numJ);p.joint_fri*eye(p.numJ);zeros(p.numJ);zeros(4,p.numJ)]+dtau_tend_1+dtau_tend_2+dtau_kne_tend_1+dtau_kne_tend_2)/M;
 

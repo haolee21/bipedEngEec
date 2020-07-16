@@ -143,7 +143,7 @@ for i=1:size(x1,2)
     [f1,df1s,df1u,df1_fext] = f_x2(x1_row,param);
     [f2,df2s,df2u,df2_fext] = f_x2(x2_row,param);
     
-    err = f2-f1-0.5*([df1s;df1u;df1_fext]+[df2s;df2u;df2_fext]).'*dx_row;
+    err = f2-f1-0.5*([df1s;df1u;df1_fext]+[df2s;df2u;df2_fext]).'*dx_row(1:param.numJ*3+4,:);
     err_rate_temp = norm(err)/norm(f2-f1);
     if(err_rate_temp>err_rate)
         err_rate=err_rate_temp;
@@ -187,6 +187,9 @@ disp(['f_x2 (single var) avg gradient err:',string(err_rate/size(x1,2))]);
 % %check on states
 % x2(param.numJ*2+1:end,:) = x1(param.numJ*2+1:end,:);
 
+% check on slace variable
+% x2(param.numJ*3+5:param.numJ*3+6) = x1(param.numJ*3+5:param.numJ*3+6);
+
 [c1,grad1] = dynConst2(x1,param);
 [c2,grad2]=dynConst2(x2,param);
 dx = reshape(x2-x1,[size(x1,1)*size(x1,2),1]);
@@ -202,9 +205,9 @@ disp(['dyn2 gradient err:',string(gather(norm(err)/norm(c2-c1)))]);
 [c2,ceq2,gradc2,gradceq2]=grf_cons(x2,param);
 
 err_c = c2-c1-0.5*(gradc1+gradc2).'*dx;
-err_ceq = ceq2-ceq1-0.5*(gradceq1+gradceq2).'*dx;
+%err_ceq = ceq2-ceq1-0.5*(gradceq1+gradceq2).'*dx;
 disp(['grf c gradient err:',string(gather(norm(err_c)/norm(c2-c1)))]);
-disp(['grf ceq gradient err:',string(gather(norm(err_ceq)/norm(ceq2-ceq1)))]);
+%disp(['grf ceq gradient err:',string(gather(norm(err_ceq)/norm(ceq2-ceq1)))]);
 
 
 

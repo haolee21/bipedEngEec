@@ -25,7 +25,7 @@ param.toe_th =-model.l_heel+0.01;
 param.head_h = 1.1 ; %the head should be at least 1.6m
 param.fri_coeff=0;
 param.gaitT = 0.5;
-param.sampT = 0.008;
+param.sampT = 0.01;
 %param.init_y = -model.l_heel+0.01; %initial feet height
 param.heel_h = model.l_heel; %this is fix in the model parameter
 param.foot_l = model.l_foot;
@@ -46,7 +46,6 @@ param.gndclear = -model.l_heel+0.02;
 param.jointW = [1,1,1,1,1,1];
 % param.knee_stiff=1906.2/2; %patellar tendon, since we have two in series at the knee, the spring constant is half
 param.knee_stiff =76.325; % I use max moment (MVC/angle), since the stiffness of the paper is too high
-
 param.ank_stiff=408.65;
 
 time = 0:param.sampT:param.gaitT;
@@ -65,22 +64,24 @@ param.max_hip_vel = Inf;
 
 
 param.mass =model.totM;
-param.max_hip_tau =2*param.mass;
-param.min_hip_tau = 2*param.mass;
-param.max_kne_tau = 2*param.mass;
-param.min_kne_tau =1.5*param.mass;
-param.max_ank_tau =2*param.mass;
-param.min_ank_tau=0.1*param.mass;
+% param.max_hip_tau =2*param.mass;
+% param.min_hip_tau = 2*param.mass;
+% param.max_kne_tau = 2*param.mass;
+% param.min_kne_tau =1.5*param.mass;
+% param.max_ank_tau =2*param.mass;
+% param.min_ank_tau=0.1*param.mass;
 
-param.max_Fy = param.mass*9.81*5;
-param.max_Fx = param.mass*9.81*5;
+param.max_Fy = Inf;
+param.max_Fx = Inf;
+param.min_Fx = Inf;
+param.min_Fy = Inf;
 % 
-% param.max_hip_tau =param.mass;
-% param.min_hip_tau = param.mass;
-% param.max_kne_tau = param.mass;
-% param.min_kne_tau =param.mass;
-% param.max_ank_tau =param.mass;
-% param.min_ank_tau= param.mass;
+param.max_hip_tau =Inf;
+param.min_hip_tau = Inf;
+param.max_kne_tau = Inf;
+param.min_kne_tau =Inf;
+param.max_ank_tau =Inf;
+param.min_ank_tau= Inf;
 
 % param.max_hip_tau =param.mass;
 % param.min_hip_tau = param.mass;
@@ -179,14 +180,26 @@ dq = [0,(q(1,2:end)-q(1,1:end-1))/param.sampT;
       0,(q(5,2:end)-q(5,1:end-1))/param.sampT;
       0,(q(6,2:end)-q(6,1:end-1))/param.sampT];
 
+% the initial guess of u are calculated by forward dynamics
+u = zeros(size(q,1),size(q,2));
+for i=1:size(u,2)
+    cur_q = q(:,i);
+    cur_dq =dq(:,i);
+    % although not exactly, but for here I assume ddq is zero (dq is almost
+    % steady)
+    V = six_V(cur_q(2),cur_q(3),cur_q(4),cur_q(5),cur_q(6),cur_dq(1),cur_dq(2),cur_dq(3),cur_dq(4),cur_dq(5),cur_dq(6));
+    G = six_G(cur_q(1),cur_q(2),cur_q(3),cur_q(4),cur_q(5),cur_q(6));
+    u(:,i) = V.'+G.';
+    
+end
 
-u = zeros(param.numJ,length(q));
+
 
 Fext_toe = [zeros(1,length(q));ones(1,length(q))];
 Fext_heel = [zeros(1,length(q));ones(1,length(q))];
 
-
-x0 = [q;dq;u;Fext_toe;Fext_heel];
+slack_var = zeros(2,length(q));
+x0 = [q;dq;u;Fext_toe;Fext_heel;slack_var];
 
 % tori= linspace(0,1,size(x0,2));
 % x0_temp = load('x0_val5').x;
@@ -205,11 +218,11 @@ prob.nonlcon = @(x)five_link_nonlcon(x,param);
 %     [x(0),x(1),x(2).......x(end)], one condition, one row
 
 numCond = 19; %start-end pos conditions, velocity conditions
-numS = param.numJ*3+4;
+numS = param.numJ*3+4+2;
 %start-end joint condition 
 %position
 Aeq = zeros(numCond,size(x0,1)*size(x0,2)); 
-Aeq(1:param.numJ+1,1:param.numJ*3)=[1,1,1,1,1,0, 0,0,0,0,0,0,0,0,0,0,0,0;   %start frame 
+Aeq(1:param.numJ+1,1:param.numJ*3)=[0,0,0,0,0,1, 0,0,0,0,0,0,0,0,0,0,0,0;   %start frame 
                                     0,0,0,0,1,0, 0,0,0,0,0,0,0,0,0,0,0,0;
                                     0,0,0,1,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
                                     0,0,1,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
@@ -217,12 +230,12 @@ Aeq(1:param.numJ+1,1:param.numJ*3)=[1,1,1,1,1,0, 0,0,0,0,0,0,0,0,0,0,0,0;   %sta
                                     1,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
                                     1,1,1,1,1,1, 0,0,0,0,0,0,0,0,0,0,0,0];
 % endframe
-Aeq(1:param.numJ,end-numS+1:end-4) = [-1,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0; 
-                                             0,1,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
-                                             0,0,1,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
-                                             0,0,0,1,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
-                                             0,0,0,0,1,0, 0,0,0,0,0,0,0,0,0,0,0,0;
-                                             0,0,0,0,0,1, 0,0,0,0,0,0,0,0,0,0,0,0];
+Aeq(1:param.numJ,end-numS+1:end-numS+param.numJ*3) =   [ 1,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0; 
+                                                         0,1,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                                         0,0,1,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                                         0,0,0,1,0,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                                         0,0,0,0,1,0, 0,0,0,0,0,0,0,0,0,0,0,0;
+                                                         0,0,0,0,0,1, 0,0,0,0,0,0,0,0,0,0,0,0];
 %velocity    
 %start frame
 Aeq(param.numJ+2:param.numJ*2+1,1:param.numJ*3) = [0,0,0,0,0,0,  1,0,0,0,0,0  ,0,0,0,0,0,0;
@@ -232,7 +245,7 @@ Aeq(param.numJ+2:param.numJ*2+1,1:param.numJ*3) = [0,0,0,0,0,0,  1,0,0,0,0,0  ,0
                                                  0,0,0,0,0,0,  0,0,0,0,1,0  ,0,0,0,0,0,0;
                                                  0,0,0,0,0,0,  0,0,0,0,0,1  ,0,0,0,0,0,0];
 %end frame
-Aeq(param.numJ+2:param.numJ*2+1,end-numS+1:end-4)=[0,0,0,0,0,0,  0,0,0,0,0,1  ,0,0,0,0,0,0;
+Aeq(param.numJ+2:param.numJ*2+1,end-numS+1:end-numS+param.numJ*3)=[0,0,0,0,0,0,  0,0,0,0,0,1  ,0,0,0,0,0,0;
                                                        0,0,0,0,0,0,  0,0,0,0,1,0  ,0,0,0,0,0,0;
                                                        0,0,0,0,0,0,  0,0,0,1,0,0  ,0,0,0,0,0,0;
                                                        0,0,0,0,0,0,  0,0,1,0,0,0  ,0,0,0,0,0,0;
@@ -246,7 +259,7 @@ Aeq(param.numJ*2+2:param.numJ*3+1,1:param.numJ*3) = [0,0,0,0,0,0,  0,0,0,0,0,0  
                                                    0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,0,1,0;
                                                    0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,0,0,1];
 
-Aeq(param.numJ*2+2:param.numJ*3+1,end-numS+1:end-4)=[0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,0,0,1;
+Aeq(param.numJ*2+2:param.numJ*3+1,end-numS+1:end-numS+param.numJ*3)=[0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,0,0,1;
                                                          0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,0,1,0;
                                                          0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,0,1,0,0;
                                                          0,0,0,0,0,0,  0,0,0,0,0,0  ,0,0,1,0,0,0;
@@ -260,21 +273,24 @@ Aeq(param.numJ*2+2:param.numJ*3+1,end-numS+1:end-4)=[0,0,0,0,0,0,  0,0,0,0,0,0  
                                                       
                                                       
 prob.Aeq = Aeq;
-prob.beq = [-pi;0;-pi;-pi;0;0;-pi;0;0;0;0;0;0;0;0;0;0;0;0];
+prob.beq = [0;0;-pi;-pi;0;0;-pi;0;0;0;0;0;0;0;0;0;0;0;0];
 
 % back never bend backward
 % -1*(q1+q2+q3) <-88 deg, 
 %    -q3 < -1 deg
 % abs(dq1+dq2+dq3) <10 deg/sec
 % Fy_toe>0, Fy_heel>0
+% s_toe >0, s_heel>0
 
-Asamp = zeros(6,numS); % create A for single frame
+Asamp = zeros(8,numS); % create A for single frame
 Asamp(1:2,1:3) = [-1,-1,-1;
                    1, 1, 1];
 Asamp(3:4,1+param.numJ:3+param.numJ)=[-1,-1,-1;
                                        1, 1, 1];
 Asamp(5:6,param.numJ*3+1:param.numJ*3+4) = [0,-1,0,0;
                                             0,0,0,-1];
+Asamp(7:8,param.numJ*3+5:param.numJ*3+6)=[-1,0;
+                                          0,-1];
 
 Acell = repmat({Asamp},1,floor(param.gaitT/param.sampT+1));
 prob.Aineq = blkdiag(Acell{:});
@@ -282,6 +298,8 @@ Bsamp = [-90/180*pi;
           110/180*pi;
           10/180*pi/param.sampT;
           10/180*pi/param.sampT;
+          0;
+          0;
           0;
           0];
 prob.bineq = repmat(Bsamp,floor(param.gaitT/param.sampT+1),1); 
@@ -308,7 +326,8 @@ prob.ub = [179/180*pi*ones(1,size(x0,2));
            param.max_Fx*ones(1,size(x0,2));
            param.max_Fy*ones(1,size(x0,2));
            param.max_Fx*ones(1,size(x0,2));
-           param.max_Fy*ones(1,size(x0,2))];
+           param.max_Fy*ones(1,size(x0,2));
+           ones(2,size(x0,2))];
 prob.lb = [ones(1,size(x0,2))/180*pi;
            -179/180*pi*ones(1,size(x0,2));
            -75/180*pi*ones(1,size(x0,2));
@@ -328,9 +347,10 @@ prob.lb = [ones(1,size(x0,2))/180*pi;
            -param.max_kne_tau*ones(1,size(x0,2));
            -param.min_ank_tau*ones(1,size(x0,2));
            -param.max_Fx*ones(1,size(x0,2));
-           -0.001*ones(1,size(x0,2)); %I just add some values to make it easier to calculate, after all optimal solution should gave us zero
+           -0*ones(1,size(x0,2)); %I just add some values to make it easier to calculate, after all optimal solution should gave us zero
            -param.max_Fx*ones(1,size(x0,2));
-           -0.001*ones(1,size(x0,2))];
+           -0*ones(1,size(x0,2));
+            -0.0001*ones(2,size(x0,2))];
 
 
 %% define object function
@@ -343,15 +363,15 @@ prob.objective = @(x)objFun(x,param);
 
 prob.x0 = x0;
 
-iterTime = 200;
+iterTime =10000;
 % options = optimoptions('fmincon','MaxIter',iterTime,'MaxFunctionEvaluations',iterTime*5,...
 %     'Display','iter','GradObj','on','TolCon',1e-8,'SpecifyConstraintGradient',true,...
 %     'SpecifyObjectiveGradient',true,'StepTolerance',1e-10,'UseParallel',true,'SubproblemAlgorithm' ,'factorization')%,'HessianFcn',@(x,lambda)hessianfcn(x,lambda,param));%,'ScaleProblem',true);%'HessianFcn',@hessianfcn
 
 
-options = optimoptions('fmincon','MaxIter',iterTime,'MaxFunctionEvaluations',iterTime*5,...
+options = optimoptions('fmincon','Algorithm','interior-point','MaxIter',iterTime,'MaxFunctionEvaluations',iterTime*5,...
     'Display','iter','GradObj','on','TolCon',1e-8,'SpecifyConstraintGradient',true,...
-    'SpecifyObjectiveGradient',true,'StepTolerance',1e-10,'UseParallel',true,'DiffMinChange',0,'ScaleProblem',true);%,'HessianFcn',@(x,lambda)hessianfcn(x,lambda,param));%,'ScaleProblem',true);%'HessianFcn',@hessianfcn
+    'SpecifyObjectiveGradient',true,'StepTolerance',1e-20,'UseParallel',true,'DiffMinChange',0,'ScaleProblem',true);%,'HessianFcn',@(x,lambda)hessianfcn(x,lambda,param));%,'ScaleProblem',true);%'HessianFcn',@hessianfcn
 
 
 prob.options = options;
