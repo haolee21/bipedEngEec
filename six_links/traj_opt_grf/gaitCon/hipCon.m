@@ -9,7 +9,7 @@ else
     ceq_grad = zeros(size(x,1),size(x,2));
 end
 
-ceq_grad(1:3,1)=dHipPos_x(x1.').';
-ceq_grad(1:3,end)=-dHipPos_x(xm.').';
+ceq_grad(1:p.numJ,1)=dHipPos_x(x1.').';
+ceq_grad(1:p.numJ,end)=-dHipPos_x(xm.').';
 ceq_grad = reshape(ceq_grad,[size(x,1)*size(x,2),1]);
 end

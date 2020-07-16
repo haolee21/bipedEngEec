@@ -1,7 +1,7 @@
 %% Calculate the optimized trajectories for 5 link biped model with GRF
 % the dynamics constraints are discrete Lagrangian
 clear;
-modelName='human_4';
+modelName='human_5';
 warning on verbose
 %add share functions
 addpath dyn/
@@ -12,16 +12,16 @@ dbstop if error
 
 addpath (['../',modelName,'/robotGen/'])
 addpath (['../',modelName,'/robotGen/grad/'])
-addpath (['../',modelName,'/robotGen/posCons/'])
+% addpath (['../',modelName,'/robotGen/posCons/'])
 addpath (['../',modelName,'/robotGen/dyn/'])
-addpath (['../',modelName,'/robotGen/obj/'])
+% addpath (['../',modelName,'/robotGen/obj/'])
 addpath (['../',modelName,'/robotGen/grf/'])
 addpath (['../',modelName,'/robotGen/grf/discrete'])
 
 %% simulate parameters
 model = load(['../',modelName,'/robotGen/model']).model;
 param.numJ=6;
-param.toe_th =-model.l_heel+0.02;
+param.toe_th =-model.l_heel+0.01;
 param.head_h = 1.1 ; %the head should be at least 1.6m
 
 param.gaitT = 0.5;
@@ -30,21 +30,21 @@ param.sampT = 0.01;
 param.heel_h = model.l_heel; %this is fix in the model parameter
 param.foot_l = model.l_foot;
 param.dmax =1e-3;
-param.cmax=1000;
-param.k=2e6;
+param.cmax=1500;
+param.k=4e6;
 param.us=0.8;
 param.ud=0.6;
 param.init_y=-model.l_heel;
 
 param.joint_fri = 0.01;
 
-param.hip_feet_ratio = 3;
+param.hip_feet_ratio = 2;
 param.hipLen=param.hip_feet_ratio*model.l_foot;
-param.gaitLen = model.l_foot*3;
+% param.gaitLen = model.l_foot*3;
 param.init_y = 0;
 
 param.gndclear = -model.l_heel+0.02;
-param.jointW = [5,0.1,1,1,0.1,0.1];
+param.jointW = [10,1,1,1,1,1];
 
 param.knee_stiff =76.325; % I use max moment (MVC/angle), since the stiffness of the paper is too high
 % param.knee_stiff=0;

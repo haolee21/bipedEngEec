@@ -7,7 +7,7 @@ clear;
 addpath ../
 
 numJ = 6;
-totH=1.7; %total height % still not add up to 100%, but these are just numbers
+totH=1.83; %total height % still not add up to 100%, but these are just numbers
 l_foot = 0.1476*totH; %use de Leva number to get the percentage 
 l_calf = 0.2514*totH; %from Plagenhoef
 l_thigh =0.24334*totH;
@@ -24,7 +24,7 @@ robot.gravity=[0,9.81,0];
 
 
 %kg
-totM = 62;
+totM = 75;
 m_foot = 0.0137*totM;
 m_calf =0.0433*totM;
 m_thigh = 0.1416*totM;
@@ -35,7 +35,7 @@ m_torso = m_trunk+m_head; %this total mass is not 100% though
 model.totM = totM;
 model.l_heel = l_heel;
 model.l_foot = l_foot;
-
+save('model','model');
 %CoM pos
 lc_thigh2 = 0.433*l_thigh;
 lc_calf2 = 0.433*l_calf;
@@ -111,6 +111,34 @@ assume(sampT,'real');
 assume(q_t,'real');
 assume(qd_t,'real');
 
+%% generate the joint/CoM pos (base frame) for graphing
+% Joint
+knee_front = turnRTtoMatrix(robot.A(1,q_t))*[l_calf,0,0,1].';
+hip_front = turnRTtoMatrix(robot.A([1,2],q_t))*[l_thigh,0,0,1].';
+head = turnRTtoMatrix(robot.A([1,2,3],q_t))*[l_torso,0,0,1].';
+knee_back = turnRTtoMatrix(robot.A([1,2,3,4],q_t))*[l_thigh,0,0,1].';
+ankle_back =turnRTtoMatrix(robot.A([1,2,3,4,5],q_t))*[l_calf,0,0,1].';
+toe_back = turnRTtoMatrix(robot.A([1,2,3,4,5,6],q_t))*[l_foot,l_heel,0,1].';
+heel_back = turnRTtoMatrix(robot.A([1,2,3,4,5,6],q_t))*[0,l_heel,0,1].';
+% Com
+calf_front = turnRTtoMatrix(robot.A(1,q_t))*[lc_calf1,0,0,1].';
+thigh_front =turnRTtoMatrix(robot.A([1,2],q_t))*[lc_thigh1,0,0,1].';
+torso = turnRTtoMatrix(robot.A([1,2,3],q_t))*[lc_torso,0,0,1].';
+thigh_back = turnRTtoMatrix(robot.A([1,2,3,4],q_t))*[lc_thigh2,0,0,1].';
+calf_back = turnRTtoMatrix(robot.A([1,2,3,4,5],q_t))*[lc_calf2,0,0,1].';
+foot_back = turnRTtoMatrix(robot.A([1,2,3,4,5,6],q_t))*[lc_foot,l_heel,0,1].';
+
+draw_pos = [knee_front,hip_front,head,knee_back,ankle_back,toe_back,heel_back;...
+            calf_front,thigh_front,torso,thigh_back,calf_back,foot_back,zeros(4,1)]; %2 points to draw for the feet (toe and heel)
+draw_pos = [draw_pos(1:3,:);draw_pos(5:8,:)];
+matlabFunction(draw_pos,'file','getRobotPos','vars',q_t);
+
+
+
+
+
+
+
 dyn = dynGen_discrete(robot,end_eff);
 
 dL1 = 0.5*dyn.dLq-dyn.dLdq/sampT;
@@ -125,7 +153,7 @@ hipPos = dyn.hipPos;
 toePos = dyn.toePos;
 heelPos =dyn.heelPos;
 
-hipPos_x
+
 
 tasks = cell(1,12);
 task_i = 1;
@@ -134,10 +162,11 @@ tasks{1,task_i} =@()matlabFunction(J_toe,'file','dyn/J_toe','vars',{q_t}); task_
 tasks{1,task_i} =@()matlabFunction(J_heel,'file','dyn/J_heel','vars',{q_t}); task_i = task_i+1;
 
 % save the position
-tasks{1,task_i} =@()matlabFunction(hipPos,'file','dyn/hipPos','vars',{q_t}); task_i = task_i+1;
-tasks{1,task_i} =@()matlabFunction(toePos,'file','dyn/toePos','vars',{q_t}); task_i = task_i+1;
-tasks{1,task_i} =@()matlabFunction(heelPos,'file','dyn/heelPos','vars',{q_t}); task_i = task_i+1;
-
+tasks{1,task_i} =@()matlabFunction(hipPos(1),'file','dyn/hipPos_x','vars',{q_t}); task_i = task_i+1;
+tasks{1,task_i} =@()matlabFunction(toePos(1),'file','dyn/toePos_x','vars',{q_t}); task_i = task_i+1;
+tasks{1,task_i} =@()matlabFunction(toePos(2),'file','dyn/toePos_y','vars',{q_t}); task_i = task_i+1;
+tasks{1,task_i} =@()matlabFunction(heelPos(1),'file','dyn/heelPos_x','vars',{q_t}); task_i = task_i+1;
+tasks{1,task_i} =@()matlabFunction(heelPos(2),'file','dyn/heelPos_y','vars',{q_t}); task_i = task_i+1;
 % save the gradient of the positions
 dHipPos_x=sym(zeros(numJ,1));
 dHipPos_y=sym(zeros(numJ,1));
@@ -159,6 +188,8 @@ tasks{1,task_i} =@()matlabFunction(dToePos_x,'file','dyn/dToePos_x','vars',{q_t}
 tasks{1,task_i} =@()matlabFunction(dToePos_y,'file','dyn/dToePos_y','vars',{q_t}); task_i = task_i+1;
 tasks{1,task_i} =@()matlabFunction(dHeelPos_x,'file','dyn/dHeelPos_x','vars',{q_t}); task_i = task_i+1;
 tasks{1,task_i} =@()matlabFunction(dHeelPos_y,'file','dyn/dHeelPos_y','vars',{q_t}); task_i = task_i+1;
+
+
 
 % the return values are the Discrete Lagrangian
 % dL1 means dL(x_k,x_k+1)/dx_k
