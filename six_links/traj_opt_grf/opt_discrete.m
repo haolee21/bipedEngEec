@@ -1,7 +1,7 @@
 %% Calculate the optimized trajectories for 5 link biped model with GRF
 % the dynamics constraints are discrete Lagrangian
 clear;
-modelName='human_5';
+modelName='human_7';
 warning on verbose
 %add share functions
 addpath dyn/
@@ -21,30 +21,32 @@ addpath (['../',modelName,'/robotGen/grf/discrete'])
 %% simulate parameters
 model = load(['../',modelName,'/robotGen/model']).model;
 param.numJ=6;
-param.toe_th =-model.l_heel+0.01;
+param.toe_th =-model.h_heel+0.001;
 param.head_h = 1.1 ; %the head should be at least 1.6m
 
-param.gaitT = 0.5;
+param.gaitT = 0.7;
 param.sampT = 0.01;
 %param.init_y = -model.l_heel+0.01; %initial feet height
-param.heel_h = model.l_heel; %this is fix in the model parameter
+param.heel_h = model.h_heel; %this is fix in the model parameter
 param.foot_l = model.l_foot;
 param.dmax =1e-3;
-param.cmax=1500;
-param.k=4e6;
+param.cmax=800;
+param.k=model.totM*9.81/param.dmax^2;      %2e6;
 param.us=0.8;
 param.ud=0.6;
-param.init_y=-model.l_heel;
+% param.init_y=-model.h_heel;
 
-param.joint_fri = 0.01;
+param.joint_fri = 0.003;
 
-param.hip_feet_ratio = 2;
+param.hip_feet_ratio = 3/0.7143;
 param.hipLen=param.hip_feet_ratio*model.l_foot;
-% param.gaitLen = model.l_foot*3;
+
+param.hip_vel = -param.hipLen/param.gaitT*0.001;
 param.init_y = 0;
 
-param.gndclear = -model.l_heel+0.02;
-param.jointW = [10,1,1,1,1,1];
+param.gndclear = -model.h_heel+0.02;
+% param.jointW = [100,0.01,1,1,0.01,0.1];
+param.jointW = [100,1,1,1,1,0.1];
 
 param.knee_stiff =76.325; % I use max moment (MVC/angle), since the stiffness of the paper is too high
 % param.knee_stiff=0;
@@ -133,7 +135,7 @@ Fext_heel = [zeros(1,length(q));ones(1,length(q))];
 
 slack_var = zeros(2,length(q));
 x0 = [q;u;Fext_toe;Fext_heel;slack_var];
-
+x0=load('x0_val').x;
 prob.x0 = x0;
 %% Constraints
 prob.nonlcon = @(x)discrete_nonlcon(x,param);
@@ -142,7 +144,7 @@ prob.nonlcon = @(x)discrete_nonlcon(x,param);
 % equality constraints
 % the A matrix is define in the following way:
 %     [x(0),x(1),x(2).......x(end)], one condition, one row
-numCond = 17; %start-end pos conditions, velocity conditions
+numCond = 15; %start-end pos conditions, velocity conditions
 numS = param.numJ*2+4+2;
 %start-end joint condition 
 %position
@@ -179,14 +181,14 @@ Aeq(8:13,end-numS+1:end-numS+param.numJ)=[0,0,0,0,0,1;
                                           0,1,0,0,0,0;
                                           1,0,0,0,0,0];    
 %External force
-Aeq(14:17,2*param.numJ+1:2*param.numJ+4)=[1,0,0,0;
-                                          0,1,0,0;
-                                          0,0,1,0;
-                                          0,0,0,1];
-Aeq(14:17,end-numS+2*param.numJ+1:end-numS+2*param.numJ+4)=[-1,0,0,0;
-                                                            0,-1,0,0;
-                                                            0,0,-1,0;
-                                                            0,0,0,-1];
+
+%Fy at start and end takes 1/2 body weight
+Aeq(14,2*param.numJ+1:2*param.numJ+4) =[0,1,0,1];
+beq(14,1)=model.totM/2*9.81;
+
+Aeq(15,end-numS+param.numJ*2+1:end-numS+param.numJ*2+4)=[0,1,0,1];
+beq(15,1)=model.totM/2*9.81;
+
 
 prob.Aeq = Aeq;
 prob.beq = beq;                                            
@@ -212,7 +214,7 @@ Asamp(7:8,param.numJ*2+5:param.numJ*2+6)=[-1,0;
 
 Acell = repmat({Asamp},1,floor(param.gaitT/param.sampT+1));
 prob.Aineq = blkdiag(Acell{:});
-Bsamp = [-90/180*pi;
+Bsamp = [-88/180*pi;
           110/180*pi;
           10/180*pi/param.sampT;
           10/180*pi/param.sampT;

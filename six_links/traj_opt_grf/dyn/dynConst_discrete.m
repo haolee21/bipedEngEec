@@ -21,10 +21,17 @@ for i=1:size(x,2)-2
     
 
     
-    
-    tend_ank1_1 = [pi/2-q1(1,1),0,0,0,0,0]*p.ank_stiff;
-    tend_ank1_2 = [pi/2-q2(1,1),0,0,0,0,0]*p.ank_stiff;
-    tend_ank1_3 = [pi/2-q3(1,1),0,0,0,0,0]*p.ank_stiff;
+    qank1 = (q1(1,1)+2*q2(1,1)+q3(1,1))/4;
+    if qank1>pi/2
+        tend_ank1_1 = [pi/2-q1(1,1),0,0,0,0,0]*p.ank_stiff;
+        tend_ank1_2 = [pi/2-q2(1,1),0,0,0,0,0]*p.ank_stiff;
+        tend_ank1_3 = [pi/2-q3(1,1),0,0,0,0,0]*p.ank_stiff;
+    else
+        tend_ank1_1 = [0,0,0,0,0,0];
+        tend_ank1_2 = [0,0,0,0,0,0];
+        tend_ank1_3 = [0,0,0,0,0,0];
+    end
+        
     
     tend_ank2_1 = [0,0,0,0,0,-pi/2-q1(6,1)]*p.ank_stiff;
     tend_ank2_2 = [0,0,0,0,0,-pi/2-q2(6,1)]*p.ank_stiff;
@@ -123,9 +130,11 @@ for i=1:size(x,2)-2
         
         % gradient related to tendons
         % font ankle
-        gradceq(1,i,(i-1)*p.numJ+1) = gradceq(1,i,(i-1)*p.numJ+1)-p.ank_stiff/4*p.sampT;
-        gradceq(1,i+1,(i-1)*p.numJ+1) = gradceq(1,i+1,(i-1)*p.numJ+1)-2*p.ank_stiff/4*p.sampT;
-        gradceq(1,i+2,(i-1)*p.numJ+1) = gradceq(1,i+2,(i-1)*p.numJ+1)-p.ank_stiff/4*p.sampT;
+        if qank1>pi/2
+            gradceq(1,i,(i-1)*p.numJ+1) = gradceq(1,i,(i-1)*p.numJ+1)-p.ank_stiff/4*p.sampT;
+            gradceq(1,i+1,(i-1)*p.numJ+1) = gradceq(1,i+1,(i-1)*p.numJ+1)-2*p.ank_stiff/4*p.sampT;
+            gradceq(1,i+2,(i-1)*p.numJ+1) = gradceq(1,i+2,(i-1)*p.numJ+1)-p.ank_stiff/4*p.sampT;
+        end
         % back ankle
         gradceq(6,i,i*p.numJ) = gradceq(6,i,i*p.numJ)-p.ank_stiff/4*p.sampT;
         gradceq(6,i+1,i*p.numJ) = gradceq(6,i+1,i*p.numJ)-2*p.ank_stiff/4*p.sampT;

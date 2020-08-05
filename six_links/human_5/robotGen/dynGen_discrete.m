@@ -169,7 +169,7 @@ for i=1:numJ
     
 end
 % %% this is for a special jacobian on heel, since external force also act on the heel
-endT2 = turnRTtoMatrix(robot.A(1:1:numJ,q_t))*[0;end_eff(3);0;1];  % heel is [0,l_heel,0] position of ankle joint
+endT2 = turnRTtoMatrix(robot.A(1:1:numJ,q_t))*[0;end_eff(2);0;1];  % heel is [0,l_heel,0] position of ankle joint
 endPos2 = endT2(1:3,1);
 dyn.heelPos = endPos2;
 dyn.J_heel = sym(zeros(3,numJ));

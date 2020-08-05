@@ -2,7 +2,7 @@
 % states to solve: q, c (contact indicator)
 clear;
 clc;
-modelName='human_3';
+modelName='human_7';
 addpath dyn/
 addpath obj/
 addpath gaitCon/

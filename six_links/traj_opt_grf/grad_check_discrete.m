@@ -9,6 +9,7 @@ u = load('u_contact_test.mat').u;
 p = load('param_contact_test.mat').param;
 p.us = 0.8;
 p.gndclear =-0.03;
+p.hip_vel = 2;
 f_toe = load('f_toe_test.mat').f_toe;
 f_heel = load('f_heel_test.mat').f_heel;
 x1 = [x(1:p.numJ,:);u;f_toe;f_heel;zeros(2,size(x,2))];
@@ -74,6 +75,21 @@ err = f2-f1-0.5*(dfx1+dfx2).'*dx;
 disp(['f_dyn(dynLoss) err=',num2str(norm(err)/norm(f2-f1))]);
 
 
+%test hip_vel_con
+[ceq1,gradceq1]=hip_vel_con(x1,p);
+[ceq2,gradceq2]=hip_vel_con(x2,p);
+dx = reshape(x2-x1,[size(x1,1)*size(x1,2),1]);
+err = ceq2-ceq1-0.5*(gradceq1+gradceq2).'*dx;
+disp(['hip_vel_con err=',num2str(norm(err)/norm(ceq2-ceq1))]);
+
+
+%test dynCons
+[c1,ceq1,gradc1,gradceq1]=discrete_nonlcon(x1,p);
+[c2,ceq2,gradc2,gradceq2]=discrete_nonlcon(x2,p);
+err_ceq = ceq2-ceq1-0.5*(gradceq1+gradceq1).'*dx;
+err_c = c2-c1-0.5*(gradc1+gradc2).'*dx;
+disp(['dynCons_ceq err=',num2str(norm(err_ceq)/norm(ceq2-ceq1))]);
+disp(['dynCons_c err=',num2str(norm(err_c)/norm(c2-c1))]);
 % test dynObj
 
 

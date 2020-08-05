@@ -8,7 +8,7 @@ addpath ../
 
 numJ = 6;
 totH=1.83; %total height % still not add up to 100%, but these are just numbers
-l_foot = 0.1476*totH; %use de Leva number to get the percentage 
+l_foot = 0.1476*totH; %use de Leva number to get the percentage, 0.7143 is if I exclude toe
 l_calf = 0.2514*totH; %from Plagenhoef
 l_thigh =0.24334*totH;
 l_torso = 0.4223*totH; %head + torso, will have to adjust lc_torso later
@@ -620,6 +620,11 @@ dGrf_toe_c5_s = diff(Grf_toe_c5,s);
 dGrf_heel_c5_s = diff(Grf_heel_c5,s);
 tasks{1,task_i}=@()matlabFunction(dGrf_toe_c5_s,'file','grf/discrete/dGrf_toe_c5_s','vars',{q_t,qd_t}); task_i=task_i+1;
 tasks{1,task_i}=@()matlabFunction(dGrf_heel_c5_s,'file','grf/discrete/dGrf_heel_c5_s','vars',{q_t,qd_t}); task_i=task_i+1;
+
+
+%generate hip velocity constraint
+hip_x_vel = 
+
 
 parfor i=1:length(tasks)
     tasks{1,i}();
